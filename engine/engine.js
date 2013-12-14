@@ -3,6 +3,7 @@ require(["GlShader", "GlScene", "GlTexture", "GlVertices"]);
 
 
 var lastTime = 0;
+var sceneHasLoaded = false;
 
 function initGL(canvas) {
     try {
@@ -24,8 +25,14 @@ function getElapsedTime() {
 }
 
 
-function tick(scene, shader) {
-    window.requestAnimationFrame(function () { tick(scene, shader); });
+function tick(shader) {
+    window.requestAnimationFrame(function () { tick(shader); });
+    if (sceneHasLoaded !== false) {
+        var scene = sceneHasLoaded;
+    } else { 
+        fps.innerHTML = "Scene has not loaded";
+        return; 
+    }
     var elapsed = getElapsedTime();
     scene.tick(elapsed);
     scene.draw(shader);
@@ -39,68 +46,48 @@ function webGLStart() {
     fps = document.getElementById("fps");
     var gl = initGL(canvas);
     var shader = new GlShader(gl, "texture-shader-vs", "texture-shader-fs");
-    var scene = initScene(gl);
+    loadScene("resources/scene.json");
 
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
-    tick(scene, shader);
+    tick(shader);
 }
 
-function initScene(gl) {
+var loadScene = function(resource) {
+    $.getJSON(resource, function(json) {
+        buildSceneFromJSON(json);
+    })
+}
+
+
+var buildSceneFromJSON = function(json) {
 
     var scene = new GlScene(gl);
     var cubes = new GlVertices(gl, new GlTexture(gl, "resources/tiles.gif"));
-    var texture = textureCoordArray(cubes.baseCubeTextureCoords, 
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 2, 2);
-
-    var positions = translatedBaseCopies(cubes.baseCube, 
-            [0.0, 0.0, 0.0,
-             2.0, 0.0, -2.0,
-             0.0, 0.0, -2.0,
-             2.0, 2.0, -2.0,
-             
-             6.0, 0.0, 0.0,
-             6.0, 0.0,-2.0,
-             8.0, 0.0,-2.0,
-             8.0, 2.0,-2.0,
-
-             8.0, 2.0,-4.0,
-             8.0, 2.0,-6.0,
-             6.0, 2.0,-6.0,
-             4.0, 2.0,-6.0,
-             2.0, 2.0,-6.0,
-             2.0, 2.0,-4.0,
-
-             0.0, -2.0, 0.0,
-             0.0, -4.0, 0.0,
-             0.0, -6.0, 0.0,
-             0.0, -8.0, 0.0,
-
-             6.0, -2.0, 0.0,
-             6.0, -4.0, 0.0,
-             6.0, -6.0, 0.0,
-             6.0, -8.0, 0.0,
-
-             2.0, -4.0, 0.0,
-             4.0, -4.0, 0.0,
-             2.0, -8.0, 0.0,
-             4.0, -8.0, 0.0,
-             8.0, -8.0, 0.0,
-             10.0, -8.0, 0.0,
-             8.0, -10.0, -2.0,
-             8.0, -12.0, -2.0,
-             ]);
-    var nr = positions.length / 72;
+    var textures = [];
+    var shaderPrograms = [];
+    var positions = [];
+        
+    for (var i = 0 ; i < json.cubes.length; i++) {
+        var cube = json.cubes[i];
+        textures.push(cube.t);
+        shaderPrograms.push(cube.s);
+        positions = positions.concat(cube.v);
+    }
+    var texture = textureCoordArray(cubes.baseCubeTextureCoords, textures, 
+            json.texturesPerRow, json.texturesPerColumn);
+    var vertices = translatedBaseCopies(cubes.baseCube, positions);
+    var nr = json.cubes.length;
     var indeces = arrayFromInterval(cubes.baseCubeIndeces, nr, 24);
     var textureCoords = [];
     for (var i = 0; i < nr ; i++) {
          textureCoords = texture.concat(textureCoords);
     }
-    cubes.setVertices(positions, indeces, textureCoords);
+    cubes.setVertices(vertices, indeces, textureCoords);
 
     scene.addShape(cubes);
-    return scene;
+    sceneHasLoaded = scene;
 }
 
 // arr = [x0, y0, z0, x1, y1, z1, ...]
