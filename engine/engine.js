@@ -79,12 +79,14 @@ var buildSceneFromJSON = function(json) {
     var textures = [];
     var shaderPrograms = [];
     var positions = [];
+    var cubePositions = []
         
     for (var i = 0 ; i < json.cubes.length; i++) {
         var cube = json.cubes[i];
         textures.push(cube.t);
         shaderPrograms.push(cube.s);
         positions = positions.concat(cube.v);
+        cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
     }
 
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, textures, 
@@ -99,6 +101,8 @@ var buildSceneFromJSON = function(json) {
     cubes.setVertices(vertices, indeces, textureCoords);
 
     scene.addShape(cubes);
+    console.log(cubePositions);
+    scene.setSolids(cubePositions);
     scene.setCameraPosition(json.camera);
 
     // player

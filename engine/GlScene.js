@@ -16,6 +16,52 @@ var Position = function(pos) {
     return self;
 }
 
+var Player = function(player) {
+    var self = this;
+    self.player = player;
+    self.position = new Position(player.position);
+    self.speedX = 0.2;
+    self.speedY = 0.5;
+    self.isStanding = function(world) {
+        var x = self.position.position[0] - 1;
+        var y = self.position.position[1];
+        var w = 2;
+        var h = 2;
+        for (var s in world) {
+            var solid = world[s];
+            var sx = solid[0];
+            var sy = solid[1];
+            var sw = solid[2];
+            var sh = solid[3];
+            if (x > sx - w && x < sx + sw) {
+                if (y >= sy + (sh / 2) && y <= sy + sh + (1 / 8096)) {
+                    self.position.position[1] = sy + sh;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    self.jumping = false;
+    self.jumptick = 0;
+    self.jump = function(world) {
+        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 9;
+        self.jumptick++;
+        if (self.jumping) {
+            self.position.moveY(self.speedY);
+        } 
+    }
+    self.stopJumping = function() {
+        self.jumping = false;
+        self.jumptick = 0;
+    }
+    self.isFalling = function(world) {
+        return !self.jumping && !self.isStanding(world);
+    }
+
+    return self;
+}
+
 var GlScene = function(gl, shader) {
 
     var self = this;
@@ -28,15 +74,19 @@ var GlScene = function(gl, shader) {
     self.ticks = 0;
     self.shader = shader;
     self.player = undefined;
+    self.solids = [];
 
     self.setCameraPosition = function(pos) {
         self.camera.position = pos;
     }
 
     self.setPlayer = function(p) {
-        self.player = p;
-        self.player.position = new Position(p.position);
+        self.player = new Player(p);
         self.addShape(p);
+    }
+
+    self.setSolids = function(s) {
+        self.solids = s;
     }
 
     self.addShape = function(shape) {
@@ -47,12 +97,13 @@ var GlScene = function(gl, shader) {
         var current = 1.0 / (elapsed / 1000)
         self.ticks++;
         self.framesPerSecond = self.framesPerSecond * 0.1 + current * 0.9;
-        self.handleInput(currentlyPressedKeys);
+        self.handleInput(currentlyPressedKeys, elapsed);
         self.draw();
     }
 
-    self.handleInput = function(currentlyPressedKeys) {
-        var hSpeed = 0.25
+    self.handleInput = function(currentlyPressedKeys, elapsed) {
+        var hSpeed = 0.25;
+            
         if (currentlyPressedKeys[37]) { // left
             self.camera.moveX(-hSpeed);
             self.player.position.moveX(-hSpeed);
@@ -62,8 +113,15 @@ var GlScene = function(gl, shader) {
             self.player.position.moveX(hSpeed);
         }
         if (currentlyPressedKeys[38]) { // up
-            self.player.position.moveY(hSpeed);
+            self.player.jump(self.solids);
+        } else {
+            self.player.stopJumping();
         }
+
+        if (self.player.isFalling(self.solids)) {
+            self.player.position.moveY(-0.2);
+        }
+
     }
 
     self.draw = function() {
@@ -76,7 +134,7 @@ var GlScene = function(gl, shader) {
 
     self.drawShapes = function() {
         for (var i in self.shapes) {
-            if (self.shapes[i] === self.player) {
+            if (self.shapes[i] === self.player.player) {
                 self.mm.mvPushMatrix();
                 self.mm.translate(self.player.position.position);
                 self.mm.setMatrixUniforms(self.gl, self.shader); 
