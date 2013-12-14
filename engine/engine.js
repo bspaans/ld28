@@ -39,7 +39,12 @@ function getElapsedTime() {
 function tick() {
     window.requestAnimationFrame(function () { tick(); });
     if (sceneHasLoaded !== false) {
-        var scene = sceneHasLoaded;
+        if (sceneHasLoaded.texturesLoaded) { 
+            var scene = sceneHasLoaded;
+        } else {
+            fps.innerHTML = "Loading textures";
+            return;
+        }
     } else { 
         fps.innerHTML = "Scene has not loaded";
         return; 
@@ -74,7 +79,7 @@ var buildSceneFromJSON = function(json) {
 
     var shader = new GlShader(gl, json.vertexShader, json.fragmentShader);
     var scene = new GlScene(gl, shader);
-    var glTexture = new GlTexture(gl, json.texture);
+    var glTexture = new GlTexture(gl, json.texture, scene);
     var cubes = new GlVertices(gl, glTexture);
     var textures = [];
     var shaderPrograms = [];
@@ -91,6 +96,7 @@ var buildSceneFromJSON = function(json) {
 
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, textures, 
             json.texturesPerRow, json.texturesPerColumn);
+    console.log(texture.length);
     var vertices = translatedBaseCopies(cubes.baseCube, positions);
     var nr = json.cubes.length;
     var indeces = arrayFromInterval(cubes.baseCubeIndeces, nr, 24);
@@ -98,10 +104,10 @@ var buildSceneFromJSON = function(json) {
     for (var i = 0; i < nr ; i++) {
          textureCoords = texture.concat(textureCoords);
     }
+    console.log(textureCoords.length);
     cubes.setVertices(vertices, indeces, textureCoords);
 
     scene.addShape(cubes);
-    console.log(cubePositions);
     scene.setSolids(cubePositions);
     scene.setCameraPosition(json.camera);
 

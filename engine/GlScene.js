@@ -119,6 +119,7 @@ var GlScene = function(gl, shader) {
     self.shader = shader;
     self.player = undefined;
     self.solids = [];
+    self.texturesLoaded = false;
 
     self.setCameraPosition = function(pos) {
         self.camera.position = pos;
