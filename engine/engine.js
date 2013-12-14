@@ -25,8 +25,8 @@ function getElapsedTime() {
 }
 
 
-function tick(shader) {
-    window.requestAnimationFrame(function () { tick(shader); });
+function tick() {
+    window.requestAnimationFrame(function () { tick(); });
     if (sceneHasLoaded !== false) {
         var scene = sceneHasLoaded;
     } else { 
@@ -35,7 +35,6 @@ function tick(shader) {
     }
     var elapsed = getElapsedTime();
     scene.tick(elapsed);
-    scene.draw(shader);
     if (scene.ticks % 20 == 0) {
         fps.innerHTML = scene.framesPerSecond.toFixed(2);
     }
@@ -45,13 +44,12 @@ function webGLStart() {
     var canvas = document.getElementById("lesson01-canvas");
     fps = document.getElementById("fps");
     var gl = initGL(canvas);
-    var shader = new GlShader(gl, "texture-shader-vs", "texture-shader-fs");
     loadScene("resources/scene.json");
 
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
-    tick(shader);
+    tick();
 }
 
 var loadScene = function(resource) {
@@ -63,8 +61,9 @@ var loadScene = function(resource) {
 
 var buildSceneFromJSON = function(json) {
 
-    var scene = new GlScene(gl);
-    var cubes = new GlVertices(gl, new GlTexture(gl, "resources/tiles.gif"));
+    var shader = new GlShader(gl, json.vertexShader, json.fragmentShader);
+    var scene = new GlScene(gl, shader);
+    var cubes = new GlVertices(gl, new GlTexture(gl, json.texture));
     var textures = [];
     var shaderPrograms = [];
     var positions = [];
@@ -87,6 +86,7 @@ var buildSceneFromJSON = function(json) {
     cubes.setVertices(vertices, indeces, textureCoords);
 
     scene.addShape(cubes);
+    scene.setCameraPosition(json.camera);
     sceneHasLoaded = scene;
 }
 
