@@ -50,147 +50,11 @@ function webGLStart() {
 function initScene(gl) {
 
     var scene = new GlScene(gl);
-
-//    // TRIANGLE
-//    var triangle = new GlTriangle(gl);
-//    triangle.setVertices([
-//         0.0,  1.0,  0.0,
-//        -1.0, -1.0,  0.0,
-//         1.0, -1.0,  0.0
-//    ]);
-//    triangle.setColors([
-//            1.0, 0.0, 0.0, 1.0,
-//            0.0, 1.0, 0.0, 1.0,
-//            0.0, 0.0, 1.0, 1.0
-//    ]);
-//    //scene.addShape(triangle);
-//
-//    // PYRAMID
-//    var pyramid = new GlPyramid(gl);
-//
-//    pyramid.setVertices([
-//         //Front face
-//         0.0,  1.0,  0.0,
-//        -1.0, -1.0,  1.0,
-//         1.0, -1.0,  1.0,
-//         //Right face
-//         0.0,  1.0,  0.0,
-//         1.0, -1.0,  1.0,
-//         1.0, -1.0, -1.0,
-//         //Back face
-//         0.0,  1.0,  0.0,
-//         1.0, -1.0, -1.0,
-//        -1.0, -1.0, -1.0,
-//         //Left face
-//         0.0,  1.0,  0.0,
-//        -1.0, -1.0, -1.0,
-//        -1.0, -1.0,  1.0
-//    ]);
-//
-//    pyramid.setColors([
-//        // Front face
-//        1.0, 0.0, 0.0, 1.0,
-//        0.0, 1.0, 0.0, 1.0,
-//        0.0, 0.0, 1.0, 1.0,
-//        // Right face
-//        1.0, 0.0, 0.0, 1.0,
-//        0.0, 0.0, 1.0, 1.0,
-//        0.0, 1.0, 0.0, 1.0,
-//        // Back face
-//        1.0, 0.0, 0.0, 1.0,
-//        0.0, 1.0, 0.0, 1.0,
-//        0.0, 0.0, 1.0, 1.0,
-//        // Left face
-//        1.0, 0.0, 0.0, 1.0,
-//        0.0, 0.0, 1.0, 1.0,
-//        0.0, 1.0, 0.0, 1.0
-//    ]);
-//    //scene.addShape(pyramid);
-//
-//    // SQUARE
-//    var square = new GlSquare(gl);
-//    square.setVertices([
-//         1.0,  1.0,  0.0,
-//        -1.0,  1.0,  0.0,
-//         1.0, -1.0,  0.0,
-//        -1.0, -1.0,  0.0
-//    ]);
-//
-//    var colors = [];
-//    for (var i=0; i < 4; i++) {
-//        colors = colors.concat([0.5, 0.5, 1.0, 1.0]);
-//    }
-//    square.setColors(colors);
-//
-//    //scene.addShape(square);
-//
-//    // CUBE
-//    var cube = new GlCube(gl);
-//    cube.setVertices([
-//      // Front face
-//      -1.0, -1.0,  1.0,
-//       1.0, -1.0,  1.0,
-//       1.0,  1.0,  1.0,
-//      -1.0,  1.0,  1.0,
-//
-//      // Back face
-//      -1.0, -1.0, -1.0,
-//      -1.0,  1.0, -1.0,
-//       1.0,  1.0, -1.0,
-//       1.0, -1.0, -1.0,
-//
-//      // Top face
-//      -1.0,  1.0, -1.0,
-//      -1.0,  1.0,  1.0,
-//       1.0,  1.0,  1.0,
-//       1.0,  1.0, -1.0,
-//
-//      // Bottom face
-//      -1.0, -1.0, -1.0,
-//       1.0, -1.0, -1.0,
-//       1.0, -1.0,  1.0,
-//      -1.0, -1.0,  1.0,
-//
-//      // Right face
-//       1.0, -1.0, -1.0,
-//       1.0,  1.0, -1.0,
-//       1.0,  1.0,  1.0,
-//       1.0, -1.0,  1.0,
-//
-//      // Left face
-//      -1.0, -1.0, -1.0,
-//      -1.0, -1.0,  1.0,
-//      -1.0,  1.0,  1.0,
-//      -1.0,  1.0, -1.0
-//    ]);
-//    colors = [
-//      [1.0, 0.0, 0.0, 1.0],     // Front face
-//      [1.0, 1.0, 0.0, 1.0],     // Back face
-//      [0.0, 1.0, 0.0, 1.0],     // Top face
-//      [1.0, 0.5, 0.5, 1.0],     // Bottom face
-//      [1.0, 0.0, 1.0, 1.0],     // Right face
-//      [0.0, 0.0, 1.0, 1.0]      // Left face
-//    ];
-//    var unpackedColors = [];
-//    for (var i in colors) {
-//      var color = colors[i];
-//      for (var j=0; j < 4; j++) {
-//        unpackedColors = unpackedColors.concat(color);
-//      }
-//    }
-//    cube.setColors(unpackedColors);
-    //scene.addShape(cube);
-
-
-
-    // TEXTURED CUBE
     var cubes = new GlVertices(gl, new GlTexture(gl, "resources/tiles.gif"));
-    var base = cubes.baseCube;
-    var index = cubes.baseCubeIndeces;
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, 
             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 2, 2);
 
-    var positions = translatedBaseCopies(base, 
+    var positions = translatedBaseCopies(cubes.baseCube, 
             [0.0, 0.0, 0.0,
              2.0, 0.0, -2.0,
              0.0, 0.0, -2.0,
@@ -228,7 +92,7 @@ function initScene(gl) {
              8.0, -12.0, -2.0,
              ]);
     var nr = positions.length / 72;
-    var indeces = arrayFromInterval(index, nr, 24);
+    var indeces = arrayFromInterval(cubes.baseCubeIndeces, nr, 24);
     var textureCoords = [];
     for (var i = 0; i < nr ; i++) {
          textureCoords = texture.concat(textureCoords);
