@@ -4,7 +4,6 @@ var GlShape = function(gl) {
     self.gl = gl;
     self.positionBuffer = null;
     self.colorBuffer = null;
-    self.translate = vec3.create();
 
     self.checkArraySize = function(arr, expected) {
         if (arr.length != expected) { throw ("Expecting an array of size " + expected + " got: " + arr.length) }

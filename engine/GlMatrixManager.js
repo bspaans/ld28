@@ -20,6 +20,9 @@ var GlMatrixManager = function(mvMatrix) {
     self.setMatrixUniforms = function(gl, program) {
         gl.uniformMatrix4fv(program.mvMatrixUniform, false, self.mvMatrix);
     }
+    self.translate = function(p) {
+        mat4.translate(self.mvMatrix, p);
+    }
 
     self.resetPerspective = function() {
         mat4.identity(self.mvMatrix);

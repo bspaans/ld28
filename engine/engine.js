@@ -4,6 +4,7 @@ require(["GlShader", "GlScene", "GlTexture", "GlVertices"]);
 
 var lastTime = 0;
 var sceneHasLoaded = false;
+var currentlyPressedKeys = {};
 
 function initGL(canvas) {
     try {
@@ -14,7 +15,17 @@ function initGL(canvas) {
     if (!gl) {
         throw "Could not initialise WebGL, sorry :-(";
     }
+    document.onkeydown = handleKeyDown;
+    document.onkeyup = handleKeyUp;
     return gl;
+}
+
+function handleKeyDown(event) {
+    currentlyPressedKeys[event.keyCode] = true;
+}
+
+function handleKeyUp(event) {
+    currentlyPressedKeys[event.keyCode] = false;
 }
 
 function getElapsedTime() {
@@ -34,7 +45,7 @@ function tick() {
         return; 
     }
     var elapsed = getElapsedTime();
-    scene.tick(elapsed);
+    scene.tick(elapsed, currentlyPressedKeys);
     if (scene.ticks % 20 == 0) {
         fps.innerHTML = scene.framesPerSecond.toFixed(2);
     }
@@ -63,7 +74,8 @@ var buildSceneFromJSON = function(json) {
 
     var shader = new GlShader(gl, json.vertexShader, json.fragmentShader);
     var scene = new GlScene(gl, shader);
-    var cubes = new GlVertices(gl, new GlTexture(gl, json.texture));
+    var glTexture = new GlTexture(gl, json.texture);
+    var cubes = new GlVertices(gl, glTexture);
     var textures = [];
     var shaderPrograms = [];
     var positions = [];
@@ -74,6 +86,7 @@ var buildSceneFromJSON = function(json) {
         shaderPrograms.push(cube.s);
         positions = positions.concat(cube.v);
     }
+
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, textures, 
             json.texturesPerRow, json.texturesPerColumn);
     var vertices = translatedBaseCopies(cubes.baseCube, positions);
@@ -87,6 +100,20 @@ var buildSceneFromJSON = function(json) {
 
     scene.addShape(cubes);
     scene.setCameraPosition(json.camera);
+
+    // player
+    var player = new GlVertices(gl, glTexture);
+    var vertices = translatedBaseCopies(cubes.baseCube, json.player.pos);
+
+    textures.push(json.player.t);
+    shaderPrograms.push(json.player.s);
+    positions = positions.concat(json.player.v);
+    var texture = textureCoordArray(cubes.baseCubeTextureCoords, [json.player.t],
+            json.texturesPerRow, json.texturesPerColumn);
+    player.setVertices(vertices, player.baseCubeIndeces, texture);
+    player.position = json.player.pos;
+
+    scene.setPlayer(player);
     sceneHasLoaded = scene;
 }
 

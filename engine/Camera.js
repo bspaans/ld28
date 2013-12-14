@@ -32,3 +32,4 @@ var Camera = function() {
 
     return self;
 }
+
