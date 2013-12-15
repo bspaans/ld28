@@ -124,7 +124,6 @@ var buildSceneFromJSON = function(json) {
     for (var i = 0; i < nr ; i++) {
          textureCoords = texture.concat(textureCoords);
     }
-    console.log(textureCoords.length);
     cubes.setVertices(vertices, indeces, textureCoords);
 
     scene.addShape(cubes);
@@ -135,7 +134,6 @@ var buildSceneFromJSON = function(json) {
     var player = new GlVertices(gl, glTexture);
     var vertices = translatedBaseCopies(cubes.baseCube, json.player.pos);
 
-    textures.push(json.player.t);
     shaderPrograms.push(json.player.s);
     positions = positions.concat(json.player.v);
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, [json.player.t],
@@ -149,25 +147,6 @@ var buildSceneFromJSON = function(json) {
 
 // arr = [x0, y0, z0, x1, y1, z1, ...]
 var translatedBaseCopies = function(base, arr) {
-    var result = new Array(base.length * arr.length / 3);
-    var current = base;
-    var i = 0;
-    var r = 0;
-    while (i < arr.length) {
-        var x = arr[i++];
-        var y = arr[i++];
-        var z = arr[i++];
-        var j = 0;
-        while (j < base.length) {
-            result[r++] = base[j++] + x;
-            result[r++] = base[j++] + y;
-            result[r++] = base[j++] + z;
-        }
-    }
-    return result;
-}
-
-var arrayFromPositionsVer3 = function(base, arr) {
     var result = new Array(base.length * arr.length / 3);
     var current = base;
     var i = 0;

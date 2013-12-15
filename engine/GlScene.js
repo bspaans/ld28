@@ -22,21 +22,23 @@ var Player = function(player) {
     self.position = new Position(player.position);
     self.startPosition = player.position.slice(0);
     self.speedX = 0.0;
-    self.speedY = 0.5;
+    self.speedY = 0.0;
+    self.topSpeedX = 0.5;
+    self.topSpeedY = 0.5;
     self.jumping = false;
     self.jumptick = 0;
 
     self.resetPosition = function() {
         self.position = new Position(self.startPosition.slice(0));
-        self.speedY = 0.5;
         self.speedX = 0.0;
+        self.speedY = 0.0;
         self.jumping = false;
         self.jumptick = 0;
     }
 
     self.isStanding = function(world) {
         var x = self.position.position[0] - 1;
-        var y = self.position.position[1];
+        var y = self.position.position[1] - 1;
         var w = 2;
         var h = 2;
         for (var s in world) {
@@ -47,7 +49,8 @@ var Player = function(player) {
             var sh = solid[3];
             if (x > sx - w && x < sx + sw) {
                 if (y >= sy + (sh / 2) && y <= sy + sh + (1 / 8096)) {
-                    self.position.position[1] = sy + sh;
+                    self.position.position[1] = sy + sh + 1;
+                    self.speedY = 0.0;
                     return true;
                 }
             }
@@ -58,6 +61,7 @@ var Player = function(player) {
         self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 9;
         self.jumptick++;
         if (self.jumping) {
+            self.speedY = self.topSpeedY;
             self.position.moveY(self.speedY);
         } 
     }
@@ -65,13 +69,12 @@ var Player = function(player) {
         self.jumping = false;
         self.jumptick = 0;
     }
-    self.topSpeedX = 0.3;
     self.isFalling = function(world) {
         return !self.jumping && !self.isStanding(world);
     }
     self.canMoveHorizontally = function(world) {
         var x = self.position.position[0] - 1 + self.speedX;
-        var y = self.position.position[1];
+        var y = self.position.position[1] - 1;
         var w = 2;
         var h = 2;
         for (var s in world) {
@@ -110,6 +113,14 @@ var Player = function(player) {
             self.speedX = Math.max(0.0, self.speedX - 0.01);
         }
         self.horizontalCollisionCorrection(world);
+    }
+
+    self.gravity = function(world) {
+        if (self.isFalling(world)) {
+            if (self.speedY >= 0) { self.speedY = -0.3; }
+            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.01);
+            self.position.moveY(self.speedY);
+        }
     }
 
     return self;
@@ -180,6 +191,7 @@ var GlScene = function(gl, shader) {
             self.player.horizontalMomentum(self.solids);
         }
         self.camera.moveX(self.player.speedX);
+        self.camera.moveY(self.player.speedY / 2);
         self.player.position.moveX(self.player.speedX);
         if (currentlyPressedKeys[38]) { // up
             self.player.jump(self.solids);
@@ -187,11 +199,9 @@ var GlScene = function(gl, shader) {
             self.player.stopJumping();
         }
 
-        if (self.player.isFalling(self.solids)) {
-            self.player.position.moveY(-0.2);
-        }
+        self.player.gravity(self.solids);
 
-        if (self.player.position.position[1] < -10.0) {
+        if (self.player.position.position[1] < -40.0) {
             self.resetScene();
         }
     }
@@ -208,7 +218,11 @@ var GlScene = function(gl, shader) {
         for (var i in self.shapes) {
             if (self.shapes[i] === self.player.player) {
                 self.mm.mvPushMatrix();
-                self.mm.translate(self.player.position.position);
+                var x = self.player.position.position[0]
+                var y = self.player.position.position[1]
+                var sx = self.player.startPosition[0]
+                var sy = self.player.startPosition[1]
+                self.mm.translate([x - sx, y - sy, 0.0]);
                 self.mm.setMatrixUniforms(self.gl, self.shader); 
                 self.shapes[i].draw(self.shader);
                 self.mm.mvPopMatrix();

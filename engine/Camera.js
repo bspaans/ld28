@@ -12,12 +12,8 @@ var Camera = function() {
 
         // GLOBAL mat4
         mat4.perspective(fov, widthToHeightRatio, cutOffClose, cutOffFarAway, self.matrix);
-        mat4.translate(self.matrix, self.position)
+        mat4.translate(self.matrix, self.position);
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, self.matrix);
-    }
-
-    self.translate = function(x, y, z) {
-        mat4.translate(self.matrix, [x, y, z]);
     }
 
     self.moveX = function(d) {
