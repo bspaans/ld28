@@ -24,7 +24,7 @@ var Player = function(player) {
     self.speedX = 0.0;
     self.speedY = 0.0;
     self.topSpeedX = 0.6;
-    self.topSpeedY = 0.65;
+    self.topSpeedY = 0.6;
     self.jumping = false;
     self.jumptick = 0;
     self.lastStandingPos = undefined;
@@ -91,7 +91,7 @@ var Player = function(player) {
         return false;
     }
     self.jump = function(world) {
-        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 10;
+        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 7;
         self.jumptick += 1;
         if (self.jumping) {
             if (self.speedY < 0) { self.speedY = 0.5}
@@ -269,7 +269,7 @@ var GlScene = function(gl, shader) {
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
         var cy = self.player.interpolateMove(self.player.position.position, interpolation);
-        self.cameraFollowsPlayer(cy);
+        self.cameraFollowsPlayer(self.player.position.position);
         self.camera.setGlPerspective(self.gl, self.shader);
         self.drawShapes(interpolation);
     }
@@ -278,7 +278,7 @@ var GlScene = function(gl, shader) {
         for (var i in self.shapes) {
             if (self.shapes[i] === self.player.player) {
                 self.mm.mvPushMatrix();
-                var xy = self.player.interpolateMove(self.player.position.position, interpolation);
+                var xy = self.player.position.position //self.player.interpolateMove(self.player.position.position, interpolation);
                 var sx = self.player.startPosition[0]
                 var sy = self.player.startPosition[1] 
                 self.mm.translate([xy[0] - sx, xy[1] - sy, 0.0]);
