@@ -82,7 +82,7 @@ function webGLStart() {
     var gl = initGL(canvas);
     loadScene("resources/scene.json");
 
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.enable(gl.DEPTH_TEST);
     
     tick();
@@ -104,13 +104,15 @@ var buildSceneFromJSON = function(json) {
     var textures = [];
     var shaderPrograms = [];
     var positions = [];
-    var cubePositions = []
+    var cubePositions = [];
+    var normals = [];
         
     for (var i = 0 ; i < json.cubes.length; i++) {
         var cube = json.cubes[i];
         textures.push(cube.t);
         shaderPrograms.push(cube.s);
         positions = positions.concat(cube.v);
+        normals = normals.concat(cubes.baseVertexNormals);
         cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
     }
 
@@ -124,7 +126,7 @@ var buildSceneFromJSON = function(json) {
     for (var i = 0; i < nr ; i++) {
          textureCoords = texture.concat(textureCoords);
     }
-    cubes.setVertices(vertices, indeces, textureCoords);
+    cubes.setVertices(vertices, indeces, textureCoords, normals);
 
     scene.addShape(cubes);
     scene.setSolids(cubePositions);
@@ -138,7 +140,7 @@ var buildSceneFromJSON = function(json) {
     positions = positions.concat(json.player.v);
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, [json.player.t],
             json.texturesPerRow, json.texturesPerColumn);
-    player.setVertices(vertices, player.baseCubeIndeces, texture);
+    player.setVertices(vertices, player.baseCubeIndeces, texture, player.baseVertexNormals);
     player.position = json.player.pos;
 
     scene.setPlayer(player);

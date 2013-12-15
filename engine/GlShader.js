@@ -29,13 +29,19 @@ var GlShader = function(gl, fragmentShader, vertexShader) {
 
         gl.useProgram(self.program);
 
+        self.mapShaderVariable("vertexNormalAttribute", "aVertexNormal");
         self.mapShaderVariable("vertexPositionAttribute", "aVertexPosition");
         self.mapShaderVariable("vertexColor", "aVertexColor");
         self.mapShaderVariable("textureCoordAttribute", "aTextureCoord");
 
         self.pMatrixUniform = gl.getUniformLocation(self.program, "uPMatrix");
         self.mvMatrixUniform = gl.getUniformLocation(self.program, "uMVMatrix");
+        self.nMatrixUniform = gl.getUniformLocation(self.program, "uNMatrix");
         self.samplerUniform = gl.getUniformLocation(self.program, "uSampler");
+        self.ambientColorUniform = gl.getUniformLocation(self.program, "uAmbientColor");
+        self.lightingDirectionUniform = gl.getUniformLocation(
+                self.program, "uLightingDirection");
+        self.directionalColorUniform = gl.getUniformLocation(self.program, "uDirectionalColor");
         return self.program;
     }
 
