@@ -52,7 +52,7 @@ var Player = function(player) {
                 if (y >= sy + (sh / 2) && y <= sy + sh + (1 / 8096)) {
                     self.position.position[1] = sy + sh + 1;
                     self.speedY = 0.0;
-                    self.lastStandingPos = [sx + 1, sy + sh + 1, 0.0];
+                    self.lastStandingPos = [sx + 1, sy + sh + 5, 0.0];
                     return true;
                 }
             }
@@ -182,6 +182,7 @@ var GlScene = function(gl, shader) {
         if (playerPos == self.player.startPosition) {
             self.elapsedTime = 0;
             self.ticks = 0;
+            self.score = 0;
         }
         self.cameraFollowsPlayer(playerPos);
         self.finished = false;
@@ -202,12 +203,14 @@ var GlScene = function(gl, shader) {
         self.secondsLeft = 60 - self.secondsPlayed;
         self.handleInput(currentlyPressedKeys, elapsedFrames);
         self.score = Math.max(self.score, self.player.position.position[0]);
-        if (self.player.position.position[0] > 276) {
+        if (self.player.position.position[0] > 376) {
             self.finished = true;
             return;
         }
         if (self.secondsLeft <= 0) {
-            self.resetScene(self.player.startPosition);
+            //self.resetScene(self.player.startPosition);
+            self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
+            return;
         }
         self.draw();
     }

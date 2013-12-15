@@ -30,3 +30,4 @@ clean:
 
 server:
 	python -m SimpleHTTPServer
+
