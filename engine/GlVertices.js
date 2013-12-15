@@ -135,19 +135,16 @@ var GlVertices = function(gl, texture) {
         self.vertexNormalBuffer = self.createArrayBuffer(normals);
     }
 
-    self.draw = function(shader) {
+    self.draw = function(shader, ambientColor, lightingDirection, directionalColor) {
         self.assignBufferToShaderProgramAttribute(shader.vertexPositionAttribute, self.positionBuffer, 3);
         self.assignBufferToShaderProgramAttribute(shader.textureCoordAttribute, self.vertexTextureCoordsBuffer, 2); 
         self.assignBufferToShaderProgramAttribute(shader.vertexNormalAttribute, self.vertexNormalBuffer, 3); 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, self.texture.texture);
         gl.uniform1i(shader.samplerUniform, 0);
-        gl.uniform3f(shader.ambientColorUniform, 0.6, 0.6, 0.6);
-
-        var adjustedLD = [-0.5, 1.0, 1.0];
-        gl.uniform3fv(shader.lightingDirectionUniform, adjustedLD);
-
-        gl.uniform3fv(shader.directionalColorUniform, [0.6,0.6,0.6]);
+        gl.uniform3fv(shader.ambientColorUniform, ambientColor);
+        gl.uniform3fv(shader.lightingDirectionUniform, lightingDirection);
+        gl.uniform3fv(shader.directionalColorUniform, directionalColor);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, self.vertexIndexBuffer);
         self.gl.drawElements(self.gl.TRIANGLES, self.numberOfPositionVertices / 2, self.gl.UNSIGNED_SHORT, 0);

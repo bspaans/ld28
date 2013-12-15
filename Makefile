@@ -19,9 +19,11 @@ dirty: target
 	sed '/^\(require\|define\)(.*);\?\s*$$/d' target/engine.dirty.js > target/engine.js
 
 tilemap:
-	montage -geometry +0+0 resources/1.gif resources/2.gif resources/tiles_.gif
-	convert resources/tiles_.gif -extent 128x128 resources/tiles.gif
-	rm resources/tiles_.gif
+	montage -geometry +0+0 resources/1.gif resources/2.gif resources/tiles_1.gif
+	montage -geometry +0+0 resources/3.gif resources/4.gif resources/tiles_2.gif
+	montage -geometry +0+0 -tile 1x2 resources/tiles_1.gif resources/tiles_2.gif resources/tiles_.gif
+	convert resources/tiles_.gif resources/tiles.gif
+	rm resources/tiles_*.gif
 
 clean:
 	rmdir target

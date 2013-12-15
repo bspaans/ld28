@@ -144,6 +144,10 @@ var GlScene = function(gl, shader) {
     self.hasRun = false;
     self.elapsedTime = 0;
 
+    self.ambientColor = undefined;
+    self.lightingDirection = undefined;
+    self.directionalColor = undefined;
+
     audiojs.events.ready(function() {
         var options = {};
         self.soundtrack = audiojs.newInstance(document.getElementById("soundtrack"), options);
@@ -232,11 +236,11 @@ var GlScene = function(gl, shader) {
                 var sy = self.player.startPosition[1]
                 self.mm.translate([x - sx, y - sy, 0.0]);
                 self.mm.setMatrixUniforms(self.gl, self.shader); 
-                self.shapes[i].draw(self.shader);
+                self.shapes[i].draw(self.shader, self.ambientColor, self.lightingDirection, self.directionalColor);
                 self.mm.mvPopMatrix();
             } else {
                 self.mm.setMatrixUniforms(self.gl, self.shader); 
-                self.shapes[i].draw(self.shader);
+                self.shapes[i].draw(self.shader, self.ambientColor, self.lightingDirection, self.directionalColor);
             }
         }
     }

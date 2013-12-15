@@ -132,6 +132,9 @@ var buildSceneFromJSON = function(json) {
     scene.addShape(cubes);
     scene.setSolids(cubePositions);
     scene.setCameraPosition(json.camera);
+    scene.ambientColor = json.light.ambient;
+    scene.lightingDirection = json.light.direction;
+    scene.directionalColor = json.light.directionalColor;
 
     // player
     var player = new GlVertices(gl, glTexture);
