@@ -208,14 +208,15 @@ var GlScene = function(gl, shader) {
             return;
         }
         if (self.secondsLeft <= 0) {
-            //self.resetScene(self.player.startPosition);
-            self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
             return;
         }
         self.draw();
     }
 
     self.handleInput = function(currentlyPressedKeys, elapsed) {
+        if (currentlyPressedKeys[32]) {
+            self.resetScene(self.player.startPosition);
+        }
         if (currentlyPressedKeys[37]) { // left
             self.player.moveRight(self.solids, elapsed);
         } else if (currentlyPressedKeys[39]) { // right

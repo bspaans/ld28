@@ -64,8 +64,9 @@ function tick() {
     score.innerHTML = scene.score.toFixed(0);
 
     if (scene.secondsLeft <= 0) {
-        fps.innerHTML = "You dead little fella";
-        timeLeft.innerHTML = "You dead little fella";
+        fps.innerHTML = "You scored " + scene.score.toFixed(0) + " points";
+        timeLeft.innerHTML = "GAME OVER";
+        score.innerHTML = "";
         return;
     }
 
