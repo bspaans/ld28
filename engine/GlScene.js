@@ -57,11 +57,11 @@ var Player = function(player) {
         }
         return false;
     }
-    self.jump = function(world) {
-        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 9;
-        self.jumptick++;
+    self.jump = function(world, elapsed) {
+        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 10;
+        self.jumptick += elapsed;
         if (self.jumping) {
-            self.speedY = self.topSpeedY;
+            self.speedY = self.topSpeedY * elapsed;
             self.position.moveY(self.speedY);
         } 
     }
@@ -92,33 +92,32 @@ var Player = function(player) {
         return true;
     }
     self.horizontalCollisionCorrection = function(world) {
-        if (self.canMoveHorizontally(world)) {
-        } else {
+        if (!self.canMoveHorizontally(world)) {
             self.speedX = 0.0;
         }
     }
-    self.moveRight = function(world) {
-        self.speedX = Math.max(-self.topSpeedX, self.speedX - 0.1);
+    self.moveRight = function(world, elapsed) {
+        self.speedX = Math.max(-self.topSpeedX, self.speedX - 0.1 * elapsed);
         self.horizontalCollisionCorrection(world);
     }
-    self.moveLeft = function(world) {
-        self.speedX = Math.min(self.topSpeedX, self.speedX + 0.1);
+    self.moveLeft = function(world, elapsed) {
+        self.speedX = Math.min(self.topSpeedX, self.speedX + 0.1 * elapsed);
         self.horizontalCollisionCorrection(world);
     }
-    self.horizontalMomentum = function(world) {
+    self.horizontalMomentum = function(world, elapsed) {
         if (self.speedX < 0) {
-            self.speedX = Math.min(0.0, self.speedX + 0.01);
+            self.speedX = Math.min(0.0, self.speedX + 0.04 * elapsed);
         }
         else if (self.speedX > 0) {
-            self.speedX = Math.max(0.0, self.speedX - 0.01);
+            self.speedX = Math.max(0.0, self.speedX - 0.04 * elapsed);
         }
         self.horizontalCollisionCorrection(world);
     }
 
-    self.gravity = function(world) {
+    self.gravity = function(world, elapsed) {
         if (self.isFalling(world)) {
-            if (self.speedY >= 0) { self.speedY = -0.3; }
-            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.01);
+            if (self.speedY >= 0) { self.speedY = -0.3 * elapsed; }
+            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.01 * elapsed);
             self.position.moveY(self.speedY);
         }
     }
@@ -180,14 +179,14 @@ var GlScene = function(gl, shader) {
         self.camera.position = self.cameraStartPosition.slice(0);
     }
 
-    self.tick = function(elapsed, currentlyPressedKeys) {
+    self.tick = function(elapsed, elapsedFrames, currentlyPressedKeys) {
         var current = 1.0 / (elapsed / 1000)
         self.ticks++;
         self.elapsedTime += elapsed;
         self.framesPerSecond = self.framesPerSecond * 0.1 + current * 0.9;
         self.secondsPlayed = (self.elapsedTime / 1000).toFixed(0);
         self.secondsLeft = 60 - self.secondsPlayed;
-        self.handleInput(currentlyPressedKeys, elapsed);
+        self.handleInput(currentlyPressedKeys, elapsedFrames);
         if (self.secondsLeft == 0) {
             self.resetScene();
         }
@@ -196,22 +195,22 @@ var GlScene = function(gl, shader) {
 
     self.handleInput = function(currentlyPressedKeys, elapsed) {
         if (currentlyPressedKeys[37]) { // left
-            self.player.moveRight(self.solids);
+            self.player.moveRight(self.solids, elapsed);
         } else if (currentlyPressedKeys[39]) { // right
-            self.player.moveLeft(self.solids);
+            self.player.moveLeft(self.solids, elapsed);
         } else {
-            self.player.horizontalMomentum(self.solids);
+            self.player.horizontalMomentum(self.solids, elapsed);
         }
         self.camera.moveX(self.player.speedX);
         self.camera.moveY(self.player.speedY / 2);
         self.player.position.moveX(self.player.speedX);
         if (currentlyPressedKeys[38]) { // up
-            self.player.jump(self.solids);
+            self.player.jump(self.solids, elapsed);
         } else {
-            self.player.stopJumping();
+            self.player.stopJumping(elapsed);
         }
 
-        self.player.gravity(self.solids);
+        self.player.gravity(self.solids, elapsed);
 
         if (self.player.position.position[1] < -40.0) {
             self.resetScene();

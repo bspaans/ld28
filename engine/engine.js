@@ -2,6 +2,8 @@
 require(["GlShader", "GlScene", "GlTexture", "GlVertices"]);
 
 
+var FRAMES_PER_SECOND = 60;
+var MS_PER_FRAME = 1000 / 60;
 var lastTime = 0;
 var sceneHasLoaded = false;
 var currentlyPressedKeys = {};
@@ -55,7 +57,7 @@ function tick() {
         return; 
     }
     var elapsed = getElapsedTime();
-    scene.tick(elapsed, currentlyPressedKeys);
+    scene.tick(elapsed, elapsed / MS_PER_FRAME, currentlyPressedKeys);
 
     if (scene.secondsLeft <= 0) {
         fps.innerHTML = "You dead little fella";
@@ -83,7 +85,7 @@ function webGLStart() {
     var gl = initGL(canvas);
     loadScene("resources/scene.json");
 
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
     
     tick();
