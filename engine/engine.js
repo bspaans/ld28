@@ -67,6 +67,8 @@ function tick() {
     }
     if (scene.secondsLeft >= 60) {
         var t = "1:00";
+    } else if (scene.secondsLeft < 10) {
+        var t = "0:0" + scene.secondsLeft;
     } else {
         var t = "0:" + scene.secondsLeft;
     }

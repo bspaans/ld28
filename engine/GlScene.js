@@ -20,8 +20,19 @@ var Player = function(player) {
     var self = this;
     self.player = player;
     self.position = new Position(player.position);
+    self.startPosition = player.position.slice(0);
     self.speedX = 0.0;
     self.speedY = 0.5;
+    self.jumping = false;
+    self.jumptick = 0;
+
+    self.resetPosition = function() {
+        self.position = new Position(self.startPosition.slice(0));
+        self.speedY = 0.5;
+        self.speedX = 0.0;
+        self.jumping = false;
+        self.jumptick = 0;
+    }
 
     self.isStanding = function(world) {
         var x = self.position.position[0] - 1;
@@ -43,8 +54,6 @@ var Player = function(player) {
         }
         return false;
     }
-    self.jumping = false;
-    self.jumptick = 0;
     self.jump = function(world) {
         self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 9;
         self.jumptick++;
@@ -113,6 +122,7 @@ var GlScene = function(gl, shader) {
     self.gl = gl;
     self.mm = new GlMatrixManager();
     self.camera = new Camera();
+    self.cameraStartPosition = undefined;
     self.shapes = [];
     self.framesPerSecond = 0;
     self.ticks = 0;
@@ -124,6 +134,7 @@ var GlScene = function(gl, shader) {
 
     self.setCameraPosition = function(pos) {
         self.camera.position = pos;
+        self.cameraStartPosition = pos.slice(0);
     }
 
     self.setPlayer = function(p) {
@@ -137,6 +148,13 @@ var GlScene = function(gl, shader) {
 
     self.addShape = function(shape) {
         self.shapes.push(shape);
+    }
+
+    self.resetScene = function() {
+        self.player.resetPosition();
+        self.elapsedTime = 0;
+        self.ticks = 0;
+        self.camera.position = self.cameraStartPosition.slice(0);
     }
 
     self.tick = function(elapsed, currentlyPressedKeys) {
@@ -170,6 +188,9 @@ var GlScene = function(gl, shader) {
             self.player.position.moveY(-0.2);
         }
 
+        if (self.player.position.position[1] < -10.0) {
+            self.resetScene();
+        }
     }
 
     self.draw = function() {
