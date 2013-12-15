@@ -14,9 +14,10 @@ You've got one minute to reach the end.
 Screenshots
 ===========
 
-## After the first day
+After the first day
 
 ![alt text](https://github.com/bspaans/ld28/raw/master/resources/first_day.png "First day effort")
+![alt text](https://github.com/bspaans/ld28/raw/master/resources/first_day_2.png "First day effort")
 
 
 Features
