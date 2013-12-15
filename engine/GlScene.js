@@ -24,7 +24,7 @@ var Player = function(player) {
     self.speedX = 0.0;
     self.speedY = 0.0;
     self.topSpeedX = 0.5;
-    self.topSpeedY = 0.5;
+    self.topSpeedY = 0.6;
     self.jumping = false;
     self.jumptick = 0;
 
@@ -58,10 +58,11 @@ var Player = function(player) {
         return false;
     }
     self.jump = function(world, elapsed) {
-        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 10;
+        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 7;
         self.jumptick += elapsed;
         if (self.jumping) {
-            self.speedY = self.topSpeedY * elapsed;
+            if (self.speedY < 0) { self.speedY = 0.5}
+            self.speedY = self.topSpeedY * elapsed; 
             self.position.moveY(self.speedY);
         } 
     }
@@ -116,8 +117,8 @@ var Player = function(player) {
 
     self.gravity = function(world, elapsed) {
         if (self.isFalling(world)) {
-            if (self.speedY >= 0) { self.speedY = -0.3 * elapsed; }
-            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.01 * elapsed);
+            if (self.speedY >= 0) { self.speedY = -0.3; }
+            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.03 * elapsed);
             self.position.moveY(self.speedY);
         }
     }
@@ -136,12 +137,13 @@ var GlScene = function(gl, shader) {
     self.shapes = [];
     self.framesPerSecond = 0;
     self.ticks = 0;
+    self.score = 0;
     self.shader = shader;
     self.player = undefined;
     self.solids = [];
     self.texturesLoaded = false;
-    self.hasRun = false;
     self.elapsedTime = 0;
+    self.finished = false;
 
     self.ambientColor = undefined;
     self.lightingDirection = undefined;
@@ -177,6 +179,7 @@ var GlScene = function(gl, shader) {
         self.elapsedTime = 0;
         self.ticks = 0;
         self.camera.position = self.cameraStartPosition.slice(0);
+        self.finished = false;
     }
 
     self.tick = function(elapsed, elapsedFrames, currentlyPressedKeys) {
@@ -187,7 +190,12 @@ var GlScene = function(gl, shader) {
         self.secondsPlayed = (self.elapsedTime / 1000).toFixed(0);
         self.secondsLeft = 60 - self.secondsPlayed;
         self.handleInput(currentlyPressedKeys, elapsedFrames);
-        if (self.secondsLeft == 0) {
+        self.score = Math.max(self.score, self.player.position.position[0]);
+        if (self.player.position.position[0] > 276) {
+            self.finished = true;
+            return;
+        }
+        if (self.secondsLeft <= 0) {
             self.resetScene();
         }
         self.draw();

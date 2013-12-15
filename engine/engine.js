@@ -2,8 +2,8 @@
 require(["GlShader", "GlScene", "GlTexture", "GlVertices"]);
 
 
-var FRAMES_PER_SECOND = 60;
-var MS_PER_FRAME = 1000 / 60;
+var FRAMES_PER_SECOND = 30;
+var MS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
 var lastTime = 0;
 var sceneHasLoaded = false;
 var currentlyPressedKeys = {};
@@ -47,7 +47,6 @@ function tick() {
     if (sceneHasLoaded !== false) {
         if (sceneHasLoaded.texturesLoaded) { 
             var scene = sceneHasLoaded;
-            scene.hasRun = true;
         } else {
             fps.innerHTML = "Loading textures";
             return;
@@ -56,8 +55,13 @@ function tick() {
         fps.innerHTML = "Scene has not loaded";
         return; 
     }
+    if (scene.finished) {
+        fps.innerHTML = "You finished"
+        return; 
+    }
     var elapsed = getElapsedTime();
     scene.tick(elapsed, elapsed / MS_PER_FRAME, currentlyPressedKeys);
+    score.innerHTML = scene.score.toFixed(0);
 
     if (scene.secondsLeft <= 0) {
         fps.innerHTML = "You dead little fella";
@@ -82,6 +86,7 @@ function webGLStart() {
     var canvas = document.getElementById("lesson01-canvas");
     fps = document.getElementById("fps");
     timeLeft = document.getElementById("time");
+    score = document.getElementById("score");
     var gl = initGL(canvas);
     loadScene("resources/scene.json");
 
@@ -116,12 +121,13 @@ var buildSceneFromJSON = function(json) {
         shaderPrograms.push(cube.s);
         positions = positions.concat(cube.v);
         normals = normals.concat(cubes.baseVertexNormals);
-        cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
+        if (cube.v[2] == 0.0) {
+            cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
+        }
     }
 
     var texture = textureCoordArray(cubes.baseCubeTextureCoords, textures, 
             json.texturesPerRow, json.texturesPerColumn);
-    console.log(texture.length);
     var vertices = translatedBaseCopies(cubes.baseCube, positions);
     var nr = json.cubes.length;
     var indeces = arrayFromInterval(cubes.baseCubeIndeces, nr, 24);
