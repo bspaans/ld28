@@ -10,11 +10,18 @@
         <script type="text/javascript" src="ext/glMatrix-0.9.5.min.js"></script>
         <script type="text/javascript" src="target/engine.js"></script>
         <script type="text/javascript" src="ext/jquery-2.0.3.min.js"></script>
+        <script src="ext/audio.js"></script>
     </head>
     <body onload="webGLStart(document.getElementById('fps'));">
         <div id="time" style="font-size:32px; font-family:sans; margin-left:500px;">1:00</div>
           <canvas id="lesson01-canvas" style="border: none;" width="500" height="500"></canvas>
           <div id='fps'>FPS</div>
+          <p>Load local file</p>
+          <div id='audio'>
+          <audio preload="auto" loop="auto" autoplay="true" id="soundtrack">
+              <source src="resources/soundtrack.mp3">
+          </audio>
+          </div>
     </body>
 <script id="texture-shader-fs" type="x-shader/x-fragment">
     precision mediump float;

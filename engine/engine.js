@@ -45,6 +45,7 @@ function tick() {
     if (sceneHasLoaded !== false) {
         if (sceneHasLoaded.texturesLoaded) { 
             var scene = sceneHasLoaded;
+            scene.hasRun = true;
         } else {
             fps.innerHTML = "Loading textures";
             return;
