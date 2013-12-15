@@ -165,6 +165,9 @@ var GlScene = function(gl, shader) {
         self.secondsPlayed = (self.elapsedTime / 1000).toFixed(0);
         self.secondsLeft = 60 - self.secondsPlayed;
         self.handleInput(currentlyPressedKeys, elapsed);
+        if (self.secondsLeft == 0) {
+            self.resetScene();
+        }
         self.draw();
     }
 
