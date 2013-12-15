@@ -27,9 +27,10 @@ var Player = function(player) {
     self.topSpeedY = 0.6;
     self.jumping = false;
     self.jumptick = 0;
+    self.lastStandingPos = undefined;
 
-    self.resetPosition = function() {
-        self.position = new Position(self.startPosition.slice(0));
+    self.resetPosition = function(pos) {
+        self.position = new Position(pos.slice(0));
         self.speedX = 0.0;
         self.speedY = 0.0;
         self.jumping = false;
@@ -51,6 +52,7 @@ var Player = function(player) {
                 if (y >= sy + (sh / 2) && y <= sy + sh + (1 / 8096)) {
                     self.position.position[1] = sy + sh + 1;
                     self.speedY = 0.0;
+                    self.lastStandingPos = [sx + 1, sy + sh + 1, 0.0];
                     return true;
                 }
             }
@@ -163,6 +165,7 @@ var GlScene = function(gl, shader) {
 
     self.setPlayer = function(p) {
         self.player = new Player(p);
+        self.cameraFollowsPlayer(p.position);
         self.addShape(p);
     }
 
@@ -174,12 +177,20 @@ var GlScene = function(gl, shader) {
         self.shapes.push(shape);
     }
 
-    self.resetScene = function() {
-        self.player.resetPosition();
-        self.elapsedTime = 0;
-        self.ticks = 0;
-        self.camera.position = self.cameraStartPosition.slice(0);
+    self.resetScene = function(playerPos) {
+        self.player.resetPosition(playerPos);
+        if (playerPos == self.player.startPosition) {
+            self.elapsedTime = 0;
+            self.ticks = 0;
+        }
+        self.cameraFollowsPlayer(playerPos);
         self.finished = false;
+    }
+
+    self.cameraFollowsPlayer = function(playerPos) {
+        var p = playerPos.slice(0);
+        var c = self.cameraStartPosition;
+        self.camera.position = [c[0] - p[0], c[1] - p[1], c[2]];
     }
 
     self.tick = function(elapsed, elapsedFrames, currentlyPressedKeys) {
@@ -196,7 +207,7 @@ var GlScene = function(gl, shader) {
             return;
         }
         if (self.secondsLeft <= 0) {
-            self.resetScene();
+            self.resetScene(self.player.startPosition);
         }
         self.draw();
     }
@@ -221,7 +232,7 @@ var GlScene = function(gl, shader) {
         self.player.gravity(self.solids, elapsed);
 
         if (self.player.position.position[1] < -40.0) {
-            self.resetScene();
+            self.resetScene(self.player.lastStandingPos);
         }
     }
 
