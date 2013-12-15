@@ -205,6 +205,7 @@ var GlScene = function(gl, shader) {
         self.score = Math.max(self.score, self.player.position.position[0]);
         if (self.player.position.position[0] > 376) {
             self.finished = true;
+            self.secondsLeft = -1;
             return;
         }
         if (self.secondsLeft <= 0) {

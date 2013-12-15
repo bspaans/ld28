@@ -47,28 +47,25 @@ function tick() {
     if (sceneHasLoaded !== false) {
         if (sceneHasLoaded.texturesLoaded) { 
             var scene = sceneHasLoaded;
+            statusSpan.innerHTML = "Run!";
         } else {
-            fps.innerHTML = "Loading textures";
+            statusSpan.innerHTML = "Loading textures...";
             return;
         }
     } else { 
-        fps.innerHTML = "Scene has not loaded";
+        statusSpan.innerHTML = "Loading scene...";
         return; 
     }
-    if (scene.finished) {
-        fps.innerHTML = "You finished"
+    if (scene.finished || scene.secondsLeft <= 0) {
+        fps.innerHTML = "";
+        statusSpan.innerHTML = "Press space to play again";
+        timeLeft.innerHTML = "GAME OVER";
+        score.innerHTML = scene.score.toFixed(0);
         return; 
     }
     var elapsed = getElapsedTime();
     scene.tick(elapsed, elapsed / MS_PER_FRAME, currentlyPressedKeys);
     score.innerHTML = scene.score.toFixed(0);
-
-    if (scene.secondsLeft <= 0) {
-        fps.innerHTML = "You scored " + scene.score.toFixed(0) + " points";
-        timeLeft.innerHTML = "GAME OVER";
-        score.innerHTML = "";
-        return;
-    }
 
     if (scene.ticks % 20 == 0) {
         fps.innerHTML = scene.framesPerSecond.toFixed(2);
@@ -86,6 +83,7 @@ function tick() {
 function webGLStart() {
     var canvas = document.getElementById("lesson01-canvas");
     fps = document.getElementById("fps");
+    statusSpan = document.getElementById("status");
     timeLeft = document.getElementById("time");
     score = document.getElementById("score");
     var gl = initGL(canvas);
