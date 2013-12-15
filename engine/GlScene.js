@@ -203,7 +203,7 @@ var GlScene = function(gl, shader) {
         self.secondsLeft = 60 - self.secondsPlayed;
         self.handleInput(currentlyPressedKeys, elapsedFrames);
         self.score = Math.max(self.score, self.player.position.position[0]);
-        if (self.player.position.position[0] > 376) {
+        if (self.player.position.position[0] > 440) {
             self.finished = true;
             self.secondsLeft = -1;
             return;
@@ -236,7 +236,7 @@ var GlScene = function(gl, shader) {
 
         self.player.gravity(self.solids, elapsed);
 
-        if (self.player.position.position[1] < -40.0) {
+        if (self.player.position.position[1] < -50.0) {
             self.resetScene(self.player.lastStandingPos);
         }
     }
