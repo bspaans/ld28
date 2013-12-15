@@ -30,6 +30,10 @@ function handleKeyUp(event) {
 
 function getElapsedTime() {
     var timeNow = new Date().getTime();
+    if (lastTime == 0) { 
+        lastTime = timeNow;
+        return 1;
+    }
     var elapsed = timeNow - lastTime;
     lastTime = timeNow;
     return elapsed;
@@ -51,20 +55,34 @@ function tick() {
     }
     var elapsed = getElapsedTime();
     scene.tick(elapsed, currentlyPressedKeys);
+
+    if (scene.secondsLeft <= 0) {
+        fps.innerHTML = "You dead little fella";
+        timeLeft.innerHTML = "You dead little fella";
+        return;
+    }
+
     if (scene.ticks % 20 == 0) {
         fps.innerHTML = scene.framesPerSecond.toFixed(2);
     }
+    if (scene.secondsLeft >= 60) {
+        var t = "1:00";
+    } else {
+        var t = "0:" + scene.secondsLeft;
+    }
+    timeLeft.innerHTML = t;
 }
 
 function webGLStart() {
     var canvas = document.getElementById("lesson01-canvas");
     fps = document.getElementById("fps");
+    timeLeft = document.getElementById("time");
     var gl = initGL(canvas);
     loadScene("resources/scene.json");
 
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
-
+    
     tick();
 }
 
