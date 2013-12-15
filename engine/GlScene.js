@@ -23,11 +23,14 @@ var Player = function(player) {
     self.startPosition = player.position.slice(0);
     self.speedX = 0.0;
     self.speedY = 0.0;
-    self.topSpeedX = 0.5;
-    self.topSpeedY = 0.6;
+    self.topSpeedX = 0.6;
+    self.topSpeedY = 0.65;
     self.jumping = false;
     self.jumptick = 0;
     self.lastStandingPos = undefined;
+
+    self.movingX = 0.0;
+    self.movingY = 0.0;
 
     self.resetPosition = function(pos) {
         self.position = new Position(pos.slice(0));
@@ -35,6 +38,34 @@ var Player = function(player) {
         self.speedY = 0.0;
         self.jumping = false;
         self.jumptick = 0;
+    }
+
+    self.right = function() { self.movingX = 1; };
+    self.left = function() { self.movingX = -1; };
+    self.up = function() { self.movingY = 1; };
+
+    self.interpolateMove = function(pos, interpolation) {
+        var x = pos[0]+ self.speedX * interpolation 
+        var y = pos[1]+ self.speedY * interpolation 
+        return [x,y,pos[2]];
+    }
+
+    self.move = function(solids) {
+        if (self.movingX == 1) {
+            self.moveRight(solids);
+        } else if (self.movingX == -1) {
+            self.moveLeft(solids);
+        } else {
+            self.horizontalMomentum(solids);
+        }
+        if (self.movingY == 1) {
+            self.jump(solids);
+        } else {
+            self.jumping = false;
+        }
+        self.gravity(solids);
+        self.position.moveX(self.speedX)
+        self.position.moveY(self.speedY);
     }
 
     self.isStanding = function(world) {
@@ -59,18 +90,13 @@ var Player = function(player) {
         }
         return false;
     }
-    self.jump = function(world, elapsed) {
-        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 7;
-        self.jumptick += elapsed;
+    self.jump = function(world) {
+        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 10;
+        self.jumptick += 1;
         if (self.jumping) {
             if (self.speedY < 0) { self.speedY = 0.5}
-            self.speedY = self.topSpeedY * elapsed; 
-            self.position.moveY(self.speedY);
+            self.speedY = self.topSpeedY; 
         } 
-    }
-    self.stopJumping = function() {
-        self.jumping = false;
-        self.jumptick = 0;
     }
     self.isFalling = function(world) {
         return !self.jumping && !self.isStanding(world);
@@ -99,29 +125,30 @@ var Player = function(player) {
             self.speedX = 0.0;
         }
     }
-    self.moveRight = function(world, elapsed) {
-        self.speedX = Math.max(-self.topSpeedX, self.speedX - 0.1 * elapsed);
+    self.moveRight = function(world) {
+        self.speedX = Math.max(-self.topSpeedX, self.speedX - 0.1);
         self.horizontalCollisionCorrection(world);
     }
-    self.moveLeft = function(world, elapsed) {
-        self.speedX = Math.min(self.topSpeedX, self.speedX + 0.1 * elapsed);
+    self.moveLeft = function(world) {
+        self.speedX = Math.min(self.topSpeedX, self.speedX + 0.1);
         self.horizontalCollisionCorrection(world);
     }
-    self.horizontalMomentum = function(world, elapsed) {
+    self.horizontalMomentum = function(world) {
         if (self.speedX < 0) {
-            self.speedX = Math.min(0.0, self.speedX + 0.04 * elapsed);
+            self.speedX = Math.min(0.0, self.speedX + 0.04);
         }
         else if (self.speedX > 0) {
-            self.speedX = Math.max(0.0, self.speedX - 0.04 * elapsed);
+            self.speedX = Math.max(0.0, self.speedX - 0.04);
         }
         self.horizontalCollisionCorrection(world);
     }
 
-    self.gravity = function(world, elapsed) {
+    self.gravity = function(world) {
         if (self.isFalling(world)) {
+            self.jumptick = 0;
+            self.movingY = 0.0;
             if (self.speedY >= 0) { self.speedY = -0.3; }
-            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.03 * elapsed);
-            self.position.moveY(self.speedY);
+            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.03);
         }
     }
 
@@ -146,6 +173,7 @@ var GlScene = function(gl, shader) {
     self.texturesLoaded = false;
     self.elapsedTime = 0;
     self.finished = false;
+    self.secondsLeft = 60;
 
     self.ambientColor = undefined;
     self.lightingDirection = undefined;
@@ -194,71 +222,66 @@ var GlScene = function(gl, shader) {
         self.camera.position = [c[0] - p[0], c[1] - p[1], c[2]];
     }
 
-    self.tick = function(elapsed, elapsedFrames, currentlyPressedKeys) {
+    self.tick = function(elapsed, currentlyPressedKeys) {
         var current = 1.0 / (elapsed / 1000)
         self.ticks++;
         self.elapsedTime += elapsed;
-        self.framesPerSecond = self.framesPerSecond * 0.1 + current * 0.9;
+        //self.framesPerSecond = self.framesPerSecond * 0.1 + current * 0.9;
         self.secondsPlayed = (self.elapsedTime / 1000).toFixed(0);
         self.secondsLeft = 60 - self.secondsPlayed;
-        self.handleInput(currentlyPressedKeys, elapsedFrames);
+        self.handleInput(currentlyPressedKeys);
         self.score = Math.max(self.score, self.player.position.position[0]);
         if (self.player.position.position[0] > 440) {
             self.finished = true;
-            self.secondsLeft = -1;
+            self.score += self.secondsLeft * 10;
+            self.secondsLeft = 0;
             return;
         }
         if (self.secondsLeft <= 0) {
             return;
         }
-        self.draw();
     }
 
-    self.handleInput = function(currentlyPressedKeys, elapsed) {
+    self.handleInput = function(currentlyPressedKeys) {
         if (currentlyPressedKeys[32]) {
             self.resetScene(self.player.startPosition);
         }
-        if (currentlyPressedKeys[37]) { // left
-            self.player.moveRight(self.solids, elapsed);
-        } else if (currentlyPressedKeys[39]) { // right
-            self.player.moveLeft(self.solids, elapsed);
+        if (currentlyPressedKeys[37]) { 
+            self.player.right();
+        } else if (currentlyPressedKeys[39]) { 
+            self.player.left();
         } else {
-            self.player.horizontalMomentum(self.solids, elapsed);
+            self.player.movingX = 0.0;
         }
-        self.camera.moveX(self.player.speedX);
-        self.camera.moveY(self.player.speedY / 2);
-        self.player.position.moveX(self.player.speedX);
-        if (currentlyPressedKeys[38]) { // up
-            self.player.jump(self.solids, elapsed);
-        } else {
-            self.player.stopJumping(elapsed);
-        }
+        if (currentlyPressedKeys[38]) { 
+            self.player.up();
+        } 
 
-        self.player.gravity(self.solids, elapsed);
+        self.player.move(self.solids);
 
         if (self.player.position.position[1] < -50.0) {
             self.resetScene(self.player.lastStandingPos);
         }
     }
 
-    self.draw = function() {
+    self.draw = function(interpolation) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
-        self.cameraFollowsPlayer(self.player.position.position);
+        var cy = self.player.interpolateMove(self.player.position.position, interpolation);
+        self.cameraFollowsPlayer(cy);
         self.camera.setGlPerspective(self.gl, self.shader);
-        self.drawShapes();
+        self.drawShapes(interpolation);
     }
 
-    self.drawShapes = function() {
+    self.drawShapes = function(interpolation) {
         for (var i in self.shapes) {
             if (self.shapes[i] === self.player.player) {
                 self.mm.mvPushMatrix();
-                var x = self.player.position.position[0]
-                var y = self.player.position.position[1]
+                var xy = self.player.interpolateMove(self.player.position.position, interpolation);
                 var sx = self.player.startPosition[0]
-                var sy = self.player.startPosition[1]
-                self.mm.translate([x - sx, y - sy, 0.0]);
+                var sy = self.player.startPosition[1] 
+                self.mm.translate([xy[0] - sx, xy[1] - sy, 0.0]);
                 self.mm.setMatrixUniforms(self.gl, self.shader); 
                 self.shapes[i].draw(self.shader, self.ambientColor, self.lightingDirection, self.directionalColor);
                 self.mm.mvPopMatrix();

@@ -2,9 +2,11 @@
 require(["GlShader", "GlScene", "GlTexture", "GlVertices"]);
 
 
-var FRAMES_PER_SECOND = 30;
-var MS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
-var lastTime = 0;
+var TICKS_PER_SECOND = 30;
+var MS_PER_FRAME = 1000 / TICKS_PER_SECOND;
+var MAX_FRAMESKIP = 5;
+var lastTime = 0; 
+var nextTick = new Date().getTime() + MS_PER_FRAME;
 var sceneHasLoaded = false;
 var currentlyPressedKeys = {};
 
@@ -64,20 +66,26 @@ function tick() {
         return; 
     }
     var elapsed = getElapsedTime();
-    scene.tick(elapsed, elapsed / MS_PER_FRAME, currentlyPressedKeys);
-    score.innerHTML = scene.score.toFixed(0);
+    var now = new Date().getTime();
+    var loops = 0;
+    while ( now > nextTick && loops < MAX_FRAMESKIP) {
+        scene.tick(elapsed, currentlyPressedKeys);
+        score.innerHTML = scene.score.toFixed(0);
 
-    if (scene.ticks % 20 == 0) {
-        fps.innerHTML = scene.framesPerSecond.toFixed(2);
+        if (scene.ticks % 20 == 0) {
+            //fps.innerHTML = scene.framesPerSecond.toFixed(2);
+        }
+        if (scene.secondsLeft >= 60) {
+            var t = "1:00";
+        } else if (scene.secondsLeft < 10) {
+            var t = "0:0" + scene.secondsLeft;
+        } else {
+            var t = "0:" + scene.secondsLeft;
+        }
+        timeLeft.innerHTML = t;
+        nextTick += MS_PER_FRAME;
     }
-    if (scene.secondsLeft >= 60) {
-        var t = "1:00";
-    } else if (scene.secondsLeft < 10) {
-        var t = "0:0" + scene.secondsLeft;
-    } else {
-        var t = "0:" + scene.secondsLeft;
-    }
-    timeLeft.innerHTML = t;
+    scene.draw( (new Date().getTime() + MS_PER_FRAME - nextTick) / MS_PER_FRAME);
 }
 
 function webGLStart() {
