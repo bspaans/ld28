@@ -240,6 +240,7 @@ var GlScene = function(gl, shader) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
+        self.cameraFollowsPlayer(self.player.position.position);
         self.camera.setGlPerspective(self.gl, self.shader);
         self.drawShapes();
     }
