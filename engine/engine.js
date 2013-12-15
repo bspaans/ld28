@@ -56,7 +56,7 @@ function tick() {
         statusSpan.innerHTML = "Loading scene...";
         return; 
     }
-    if (scene.finished || scene.secondsLeft <= 0) {
+    if ((scene.finished || scene.secondsLeft <= 0) && !currentlyPressedKeys[32]) {
         fps.innerHTML = "";
         statusSpan.innerHTML = "Press space to play again";
         timeLeft.innerHTML = "GAME OVER";
