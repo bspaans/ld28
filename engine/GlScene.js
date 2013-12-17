@@ -24,7 +24,7 @@ var Player = function(player) {
     self.speedX = 0.0;
     self.speedY = 0.0;
     self.topSpeedX = 0.6;
-    self.topSpeedY = 0.6;
+    self.topSpeedY = 0.7;
     self.jumping = false;
     self.jumptick = 0;
     self.lastStandingPos = undefined;
@@ -80,7 +80,7 @@ var Player = function(player) {
             var sw = solid[2];
             var sh = solid[3];
             if (x > sx - w && x < sx + sw) {
-                if (y >= sy + (sh / 2) && y <= sy + sh + (1 / 8096)) {
+                if (y >= sy + 0.01 && y <= sy + sh + (1 / 8096)) {
                     self.position.position[1] = sy + sh + 1;
                     self.speedY = 0.0;
                     self.lastStandingPos = [sx + 1, sy + sh + 5, 0.0];
@@ -94,7 +94,6 @@ var Player = function(player) {
         self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 7;
         self.jumptick += 1;
         if (self.jumping) {
-            if (self.speedY < 0) { self.speedY = 0.5}
             self.speedY = self.topSpeedY; 
         } 
     }
@@ -147,8 +146,7 @@ var Player = function(player) {
         if (self.isFalling(world)) {
             self.jumptick = 0;
             self.movingY = 0.0;
-            if (self.speedY >= 0) { self.speedY = -0.3; }
-            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.03);
+            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.2);
         }
     }
 
