@@ -188,15 +188,10 @@ var GlScene = function(gl, shader) {
     self.camera = new Camera();
     self.cameraStartPosition = undefined;
     self.shapes = [];
-    self.ticks = 0;
-    self.score = 0;
     self.shader = shader;
     self.player = undefined;
     self.solids = [];
     self.texturesLoaded = false;
-    self.elapsedTime = 0;
-    self.finished = false;
-    self.secondsLeft = 60;
 
     self.ambientColor = undefined;
     self.lightingDirection = undefined;
@@ -216,7 +211,6 @@ var GlScene = function(gl, shader) {
 
     self.setPlayer = function(p) {
         self.player = new Player(p);
-        self.cameraFollowsPlayer(p.position);
         self.addShape(p);
     }
 
@@ -228,69 +222,10 @@ var GlScene = function(gl, shader) {
         self.shapes.push(shape);
     }
 
-    self.resetScene = function(playerPos) {
-        self.player.resetPosition(playerPos);
-        if (playerPos == self.player.startPosition) {
-            self.elapsedTime = 0;
-            self.ticks = 0;
-            self.score = 0;
-        }
-        self.cameraFollowsPlayer(playerPos);
-        self.finished = false;
-    }
-
-    self.cameraFollowsPlayer = function(playerPos) {
-        var p = playerPos.slice(0);
-        var c = self.cameraStartPosition;
-        self.camera.position = [c[0] - p[0], c[1] - p[1], c[2]];
-    }
-
-    self.tick = function(elapsed, currentlyPressedKeys) {
-        var current = 1.0 / (elapsed / 1000)
-        self.ticks++;
-        self.elapsedTime += elapsed;
-        self.secondsPlayed = (self.elapsedTime / 1000).toFixed(0);
-        self.secondsLeft = 60 - self.secondsPlayed;
-        self.handleInput(currentlyPressedKeys);
-        self.score = Math.max(self.score, self.player.position.position[0]);
-        if (self.player.position.position[0] > 440) {
-            self.finished = true;
-            self.score += self.secondsLeft * 10;
-            self.secondsLeft = 0;
-            return;
-        }
-        if (self.secondsLeft <= 0) {
-            return;
-        }
-    }
-
-    self.handleInput = function(currentlyPressedKeys) {
-        if (currentlyPressedKeys[32]) {
-            self.resetScene(self.player.startPosition);
-        }
-        if (currentlyPressedKeys[37]) { 
-            self.player.right();
-        } else if (currentlyPressedKeys[39]) { 
-            self.player.left();
-        } else {
-            self.player.movingX = 0.0;
-        }
-        if (currentlyPressedKeys[38]) { 
-            self.player.up();
-        } 
-
-        self.player.move(self.solids);
-
-        if (self.player.position.position[1] < -50.0) {
-            self.resetScene(self.player.lastStandingPos);
-        }
-    }
-
     self.draw = function(interpolation) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
-        self.cameraFollowsPlayer(self.player.position.position);
         self.camera.setGlPerspective(self.gl, self.shader);
         self.drawShapes(interpolation);
     }

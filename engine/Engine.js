@@ -49,19 +49,17 @@ var Engine = function() {
     }
 
     self.inputLoop = function(scene) {
-        if (!scene) return;
         var elapsed = self.getElapsedTime();
         var now = new Date().getTime();
         var loops = 0;
         while ( now > nextTick && loops < MAX_FRAMESKIP) {
-            scene.tick(elapsed, self.currentlyPressedKeys);
+            self.inputTick(scene, elapsed);
             nextTick += MS_PER_FRAME;
         }
     }
     self.preTick = function(scene) { } 
     self.postTick = function(scene) { }
     self.engineTick = function() {
-
         var scene = self.sceneLoader.getSceneIfReady();
         self.preTick(scene);
         self.inputLoop(scene);
