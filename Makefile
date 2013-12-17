@@ -15,7 +15,7 @@ quick: target
 	sed '/^\(require\|define\)(.*);\?\s*$$/d' target/engine.quick.js > target/engine.js
 
 dirty: target
-	cat engine/GlShader.js engine/GlMatrixManager.js engine/Camera.js engine/GlShape.js engine/GlScene.js engine/GlTexture.js engine/GlVertices.js engine/engine.js > target/engine.dirty.js
+	cat engine/Engine.js engine/SceneLoader.js engine/GlShader.js engine/GlMatrixManager.js engine/Camera.js engine/GlShape.js engine/GlScene.js engine/GlTexture.js engine/GlVertices.js engine/engine.js > target/engine.dirty.js
 	sed '/^\(require\|define\)(.*);\?\s*$$/d' target/engine.dirty.js > target/engine.js
 
 tilemap:
