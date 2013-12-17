@@ -64,6 +64,7 @@ var Player = function(player) {
             self.jumping = false;
         }
         self.gravity(solids);
+
         self.position.moveX(self.speedX)
         self.position.moveY(self.speedY);
     }
@@ -90,6 +91,30 @@ var Player = function(player) {
         }
         return false;
     }
+
+    self.willBeStanding = function(world) {
+        var x = self.position.position[0] - 1 + self.speedX;
+        var y = self.position.position[1] - 1 + self.speedY ;
+        var w = 2;
+        var h = 2;
+        for (var s in world) {
+            var solid = world[s];
+            var sx = solid[0];
+            var sy = solid[1];
+            var sw = solid[2];
+            var sh = solid[3];
+            if (x > sx - w && x < sx + sw) {
+                if (y >= sy + 0.01 && y <= sy + sh + (1 / 8096)) {
+                    self.position.position[1] = sy + sh + 1;
+                    self.speedY = 0.0;
+                    self.lastStandingPos = [sx + 1, sy + sh + 5, 0.0];
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     self.jump = function(world) {
         self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 7;
         self.jumptick += 1;
@@ -147,6 +172,7 @@ var Player = function(player) {
             self.jumptick = 0;
             self.movingY = 0.0;
             self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.2);
+            self.willBeStanding(world);
         }
     }
 
@@ -266,7 +292,6 @@ var GlScene = function(gl, shader) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
-        var cy = self.player.interpolateMove(self.player.position.position, interpolation);
         self.cameraFollowsPlayer(self.player.position.position);
         self.camera.setGlPerspective(self.gl, self.shader);
         self.drawShapes(interpolation);
@@ -276,7 +301,7 @@ var GlScene = function(gl, shader) {
         for (var i in self.shapes) {
             if (self.shapes[i] === self.player.player) {
                 self.mm.mvPushMatrix();
-                var xy = self.player.position.position //self.player.interpolateMove(self.player.position.position, interpolation);
+                var xy = self.player.position.position;
                 var sx = self.player.startPosition[0]
                 var sy = self.player.startPosition[1] 
                 self.mm.translate([xy[0] - sx, xy[1] - sy, 0.0]);

@@ -85,7 +85,7 @@ function tick() {
         timeLeft.innerHTML = t;
         nextTick += MS_PER_FRAME;
     }
-    scene.draw( (new Date().getTime() + MS_PER_FRAME - nextTick) / MS_PER_FRAME);
+    scene.draw( -((new Date().getTime() + MS_PER_FRAME - nextTick) / MS_PER_FRAME));
 }
 
 function webGLStart() {
