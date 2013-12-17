@@ -48,40 +48,37 @@ var Engine = function() {
         return elapsed;
     }
 
-
-    self.tick = function() {
-        window.requestAnimationFrame(self.tick);
-        var scene = self.sceneLoader.getSceneIfReady();
-        statusSpan.innerHTML = self.sceneLoader.getLoadStatus();
+    self.inputLoop = function(scene) {
         if (!scene) return;
-        if ((scene.finished || scene.secondsLeft <= 0) && !self.currentlyPressedKeys[32]) {
-            fps.innerHTML = "";
-            statusSpan.innerHTML = "Press space to play again";
-            timeLeft.innerHTML = "GAME OVER";
-            score.innerHTML = scene.score.toFixed(0);
-            return; 
-        }
         var elapsed = self.getElapsedTime();
         var now = new Date().getTime();
         var loops = 0;
         while ( now > nextTick && loops < MAX_FRAMESKIP) {
             scene.tick(elapsed, self.currentlyPressedKeys);
-            score.innerHTML = scene.score.toFixed(0);
-
-            if (scene.ticks % 20 == 0) {
-                //fps.innerHTML = scene.framesPerSecond.toFixed(2);
-            }
-            if (scene.secondsLeft >= 60) {
-                var t = "1:00";
-            } else if (scene.secondsLeft < 10) {
-                var t = "0:0" + scene.secondsLeft;
-            } else {
-                var t = "0:" + scene.secondsLeft;
-            }
-            timeLeft.innerHTML = t;
             nextTick += MS_PER_FRAME;
         }
-        scene.draw( -((new Date().getTime() + MS_PER_FRAME - nextTick) / MS_PER_FRAME));
+    }
+    self.preTick = function(scene) { } 
+    self.postTick = function(scene) { }
+    self.engineTick = function() {
+
+        var scene = self.sceneLoader.getSceneIfReady();
+        self.preTick(scene);
+        self.inputLoop(scene);
+        self.postTick(scene);
+        self.draw(scene);
+    }
+
+    self.draw = function(scene) {
+        if (!scene) return;
+        var now = new Date().getTime();
+        var placeInFrame = now + MS_PER_FRAME - nextTick;
+        scene.draw( -placeInFrame / MS_PER_FRAME );
+    }
+
+    self.tick = function() {
+        window.requestAnimationFrame(self.tick);
+        self.engineTick();
     }
 
     self.loadScene = function(resource) {
@@ -89,7 +86,6 @@ var Engine = function() {
             self.sceneLoader.buildSceneFromJSON(self.gl, json);
         })
     }
-
 
     self.bindEvents = function() {
         document.onkeydown = self.handleKeyDown;

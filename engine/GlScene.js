@@ -188,7 +188,6 @@ var GlScene = function(gl, shader) {
     self.camera = new Camera();
     self.cameraStartPosition = undefined;
     self.shapes = [];
-    self.framesPerSecond = 0;
     self.ticks = 0;
     self.score = 0;
     self.shader = shader;
@@ -250,7 +249,6 @@ var GlScene = function(gl, shader) {
         var current = 1.0 / (elapsed / 1000)
         self.ticks++;
         self.elapsedTime += elapsed;
-        //self.framesPerSecond = self.framesPerSecond * 0.1 + current * 0.9;
         self.secondsPlayed = (self.elapsedTime / 1000).toFixed(0);
         self.secondsLeft = 60 - self.secondsPlayed;
         self.handleInput(currentlyPressedKeys);
