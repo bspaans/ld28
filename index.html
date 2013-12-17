@@ -63,7 +63,7 @@
         vTextureCoord = aTextureCoord;
         vec3 transformedNormal = uNMatrix * aVertexNormal;
         float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
-        vLightWeighting = uDirectionalColor * directionalLightWeighting;
+        vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting; 
     }
 </script>
 </html>
