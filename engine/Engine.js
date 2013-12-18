@@ -9,7 +9,7 @@ var Engine = function() {
     var self = this;
     self.currentlyPressedKeys = {};
     self.scene = undefined;
-    self.sceneLoader = new SceneLoader();
+    self.sceneLoader = new SceneLoader(self);
 
     self.initGLOnCanvasElement = function(canvasElement) {
         try {
@@ -67,11 +67,12 @@ var Engine = function() {
         self.draw(scene);
     }
 
+    self.drawDynamicShapeCallback = undefined;
     self.draw = function(scene) {
         if (!scene) return;
         var now = new Date().getTime();
         var placeInFrame = now + MS_PER_FRAME - nextTick;
-        scene.draw( -placeInFrame / MS_PER_FRAME );
+        scene.draw( -placeInFrame / MS_PER_FRAME, self.drawDynamicShapeCallback );
     }
 
     self.tick = function() {
