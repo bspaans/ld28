@@ -19,8 +19,8 @@ var Position = function(pos) {
 var Player = function(player) {
     var self = this;
     self.player = player;
-    self.position = new Position(player.position);
-    self.startPosition = player.position.slice(0);
+    self.position = new Position(player.json[0].v);
+    self.startPosition = self.position.position.slice();
     self.speedX = 0.0;
     self.speedY = 0.0;
     self.topSpeedX = 0.6;
@@ -257,7 +257,7 @@ var MyGame = function() {
             p.up();
         } 
 
-        p.move(scene.solids);
+        p.move(scene.namedEntities.world.positions);
 
         if (p.position.position[1] < -50.0) {
             var resetPosition = p.lastStandingPos ? p.lastStandingPos : p.startPosition;
@@ -301,10 +301,12 @@ var MyGame = function() {
     }
 
     self.drawDynamicShapeCallback = function(scene, name, shape, player) {
-        var xy = player.position.position;
-        var sx = player.startPosition[0]
-        var sy = player.startPosition[1] 
-        scene.mm.translate([xy[0] - sx, xy[1] - sy, 0.0]);
+        if (name == "player") {
+            var xy = player.position.position;
+            var sx = player.startPosition[0]
+            var sy = player.startPosition[1] 
+            scene.mm.translate([xy[0] - sx, xy[1] - sy, 0.0]);
+        }
         scene.drawShape(shape);
     }
 

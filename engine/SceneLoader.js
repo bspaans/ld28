@@ -23,59 +23,57 @@ var SceneLoader = function() {
         }
     }
 
+	self.cubesFromJSONList = function(json, cubes, glTexture) {
+		if (!(cubes instanceof Array)) {
+			cubes = [cubes];
+		}
+        var textures = [];
+        var shaderPrograms = [];
+        var positions = [];
+        var normals = [];
+		var cubePositions = [];
+
+        var shape = new GlVertices(gl, glTexture);
+        for (var i = 0 ; i < cubes.length; i++) {
+            var cube = cubes[i];
+            textures.push(cube.t);
+            shaderPrograms.push(cube.s);
+            positions = positions.concat(cube.v);
+            normals = normals.concat(shape.baseVertexNormals);
+            if (cube.v[2] == 0.0) {
+                cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
+            }
+        }
+        var vertices = translatedBaseCopies(shape.baseCube, positions);
+        var texture = textureCoordArray(shape.baseCubeTextureCoords, textures, 
+                json.texturesPerRow, json.texturesPerColumn);
+        var indeces = arrayFromInterval(shape.baseCubeIndeces, cubes.length, 24);
+        var textureCoords = [];
+        for (var i = 0; i < cubes.length ; i++) {
+             textureCoords = texture.concat(textureCoords);
+        }
+		shape.json = cubes;
+		shape.positions = cubePositions;
+        shape.setVertices(vertices, indeces, textureCoords, normals);
+		return shape;
+	}
+
     self.buildSceneFromJSON = function(gl, json) {
 
         var shader = new GlShader(gl, json.vertexShader, json.fragmentShader);
         var scene = new GlScene(gl, shader);
         var glTexture = new GlTexture(gl, json.texture, scene);
-        var cubes = new GlVertices(gl, glTexture);
-        var textures = [];
-        var shaderPrograms = [];
-        var positions = [];
-        var cubePositions = [];
-        var normals = [];
-            
-        for (var i = 0 ; i < json.cubes.length; i++) {
-            var cube = json.cubes[i];
-            textures.push(cube.t);
-            shaderPrograms.push(cube.s);
-            positions = positions.concat(cube.v);
-            normals = normals.concat(cubes.baseVertexNormals);
-            if (cube.v[2] == 0.0) {
-                cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
-            }
-        }
 
-        var texture = textureCoordArray(cubes.baseCubeTextureCoords, textures, 
-                json.texturesPerRow, json.texturesPerColumn);
-        var vertices = translatedBaseCopies(cubes.baseCube, positions);
-        var nr = json.cubes.length;
-        var indeces = arrayFromInterval(cubes.baseCubeIndeces, nr, 24);
-        var textureCoords = [];
-        for (var i = 0; i < nr ; i++) {
-             textureCoords = texture.concat(textureCoords);
-        }
-        cubes.setVertices(vertices, indeces, textureCoords, normals);
+		for (var cubeName in json.cubes) {
+			console.log("Loading cubes: " + cubeName);
+			var cubes = self.cubesFromJSONList(json, json.cubes[cubeName], glTexture);
+			cubes.name = cubeName;
+			scene.addShape(cubes, cubeName, json.cubes[cubeName]);
+		}
 
-        scene.addShape(cubes);
-        scene.setSolids(cubePositions);
+		scene.setAmbientLighting(json.light.ambient);
+		scene.setDirectionalLighting(json.light.direction, json.light.directionalColor);
         scene.setCameraPosition(json.camera);
-        scene.ambientColor = json.light.ambient;
-        scene.lightingDirection = json.light.direction;
-        scene.directionalColor = json.light.directionalColor;
-
-        // player
-        var player = new GlVertices(gl, glTexture);
-        var vertices = translatedBaseCopies(cubes.baseCube, json.player.pos);
-
-        shaderPrograms.push(json.player.s);
-        positions = positions.concat(json.player.v);
-        var texture = textureCoordArray(cubes.baseCubeTextureCoords, [json.player.t],
-                json.texturesPerRow, json.texturesPerColumn);
-        player.setVertices(vertices, player.baseCubeIndeces, texture, player.baseVertexNormals);
-        player.position = json.player.pos;
-
-        scene.setPlayer(player);
         sceneHasLoaded = scene;
     }
 

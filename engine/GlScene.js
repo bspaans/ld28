@@ -26,6 +26,14 @@ var GlScene = function(gl, shader) {
         
     });
 
+    self.setAmbientLighting = function(a) {
+        self.ambientColor = a;
+    }
+    self.setDirectionalLighting = function(dir, col) {
+        self.lightingDirection = dir;
+        self.directionalColor = col;
+    }
+
     self.setCameraPosition = function(pos) {
         self.camera.position = pos;
         self.cameraStartPosition = pos.slice(0);
@@ -56,13 +64,8 @@ var GlScene = function(gl, shader) {
 
     self.drawShape = function(shape) {
         self.mm.setMatrixUniforms(self.gl, self.shader); 
-        shape.draw(self.shader, self.ambientColor, self.lightingDirection, self.directionalColor);
-    }
-
-    self.renderDynamicShape = function(name, shape, entityRef) {
-        self.mm.mvPushMatrix();
-        self.drawDynamicShape(name, shape, entityRef);
-        self.mm.mvPopMatrix();
+        shape.draw(self.shader, self.ambientColor, 
+                self.lightingDirection, self.directionalColor);
     }
 
     self.drawDynamicShape = function(name, shape, entityRef) {
@@ -71,16 +74,18 @@ var GlScene = function(gl, shader) {
 
     self.drawShapes = function(interpolation, drawDynamicShapeCallback) {
         for (var i in self.shapes) {
+            self.mm.mvPushMatrix();
             var s = self.shapes[i]
             if (s.name && self.namedEntities[s.name]) {
                 if (drawDynamicShapeCallback) {
                     drawDynamicShapeCallback(self, s.name, s, self.namedEntities[s.name]);
                 } else {
-                    self.renderDynamicShape(s.name, s, self.namedEntities[s.name]);
+                    self.drawDynamicShape(s.name, s, self.namedEntities[s.name]);
                 }
             } else {
                 self.drawShape(s);
             }
+            self.mm.mvPopMatrix();
         }
     }
 
