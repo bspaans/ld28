@@ -2,8 +2,14 @@
     "texture": "resources/tiles.gif",
     "texturesPerRow": 2,
     "texturesPerColumn": 2,
-    "fragmentShader": "texture-shader-fs",
-    "vertexShader": "texture-shader-vs",
+	"shader": {
+		"fragment": "texture-shader-fs",
+		"vertex": "texture-shader-vs",
+		"variables": ["aVertexNormal", "aVertexPosition", "aTextureCoord"],
+		"uniformLocations": ["uPMatrix", "uMVMatrix", "uNMatrix", 
+						     "uSampler", "uAmbientColor", 
+							 "uLightingDirection", "uDirectionalColor"]
+	},
     "cubes": {
 		"player": {"v": [0.0, 6.0, 0.0], "t": 1, "s": 0},
     	"world": [

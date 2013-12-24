@@ -82,15 +82,19 @@ var SceneLoader = function() {
 		return shape;
 	}
 
+	self.getShaderFromJSON = function(gl, json) {
+        var shader  = new GlShader(gl);
+		shader.initShaders(
+				self.readTextFromScriptAttribute(json.shader.fragment), 
+				self.readTextFromScriptAttribute(json.shader.vertex), 
+				json.shader.variables, json.shader.uniformLocations);
+		return shader;
+	}
+
     self.buildSceneFromJSON = function(gl, json) {
-
-		var vertexShader    = json.vertexShader;
-		var fragmentShader  = json.fragmentShader;
-		var textureLocation = json.texture;
-
-        var shader  = new GlShader(gl, vertexShader, fragmentShader);
+		var shader  = self.getShaderFromJSON(gl, json);
         var scene   = new GlScene(gl, shader);
-        var texture = new GlTexture(gl, textureLocation, self);
+        var texture = new GlTexture(gl, json.texture, self);
 
 		self.setCubesFromJSON(scene, json, gl, texture);
 		self.setLightingFromJSON(scene, json);
@@ -98,6 +102,16 @@ var SceneLoader = function() {
         sceneHasLoaded = scene;
     }
 
+    self.readTextFromScriptAttribute = function(id) {
+		var elem = document.getElementById(id);
+        var str = "";
+        var k = elem.firstChild;
+        while (k) {
+            if (k.nodeType == 3) { str += k.textContent; }
+            k = k.nextSibling;
+        }
+        return str;
+    }
 
 	self.setCubesFromJSON = function(scene, json, gl, texture) {
 		for (var cubeName in json.cubes) {

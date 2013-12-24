@@ -1,55 +1,30 @@
-var GlShader = function(gl, fragmentShader, vertexShader) {
+var GlShader = function(gl) {
 
     var self = this;
 
     self.mapShaderVariable = function(variable) {
         var a = gl.getAttribLocation(self.program, variable);
-        if (a !== -1) {
-            gl.enableVertexAttribArray(a);
-            console.log("Enabled " + variable);
-            self[variable] = a;
-            return;
-        }
-        console.log("Disabled " + variable);
+        if (a === -1) return;
+        gl.enableVertexAttribArray(a);
+        self[variable] = a;
     }
 
-    self.mapShaderVariabels = function(variables) {
-        variables.map(self.mapShaderVariable);
-    }
-    self.mapUniformLocations = function(locations) {
-        locations.map(function(v) { 
-            self[v] = gl.getUniformLocation(self.program, v);
-        });
+    self.mapUniformLocation = function(variable) {
+        self[variable] = gl.getUniformLocation(self.program, variable);
     }
 
-    self.initShaders = function(fragmentShader, vertexShader) {
-
+    self.initShaders = function(fShader, vShader, vars, uniformLocs) {
         self.program = gl.createProgram();
-        self.addShader(gl, fragmentShader, gl.FRAGMENT_SHADER);
-        self.addShader(gl, vertexShader, gl.VERTEX_SHADER);
+        self.compileAndAttachShader(gl, gl.FRAGMENT_SHADER, fShader);
+        self.compileAndAttachShader(gl, gl.VERTEX_SHADER, vShader);
         gl.linkProgram(self.program);
         if (!gl.getProgramParameter(self.program, gl.LINK_STATUS)) {
-            console.log("Could not initialise shaders");
+            throw "Could not initialise shaders";
         }
         gl.useProgram(self.program);
-
-        var variables = ["aVertexNormal", "aVertexPosition", "aTextureCoord"];
-        var uniform = ["uPMatrix", "uMVMatrix", "uNMatrix", "uSampler", 
-            "uAmbientColor", "uLightingDirection", "uDirectionalColor"];
-
-        self.mapShaderVariables(variables);
-        self.mapUniformLocations(uniform);
+        uniformLocs.map(self.mapUniformLocation);
+        vars.map(self.mapShaderVariable);
         return self.program;
-    }
-
-    self.readTextFromScriptAttribute = function(elem) {
-        var str = "";
-        var k = elem.firstChild;
-        while (k) {
-            if (k.nodeType == 3) { str += k.textContent; }
-            k = k.nextSibling;
-        }
-        return str;
     }
 
     self.compileAndAttachShader = function(gl, shaderType, shaderScript) {
@@ -62,17 +37,6 @@ var GlShader = function(gl, fragmentShader, vertexShader) {
         }
         gl.attachShader(self.program, shader);
         return shader;
-    }
-
-    self.addShader = function(gl, id, type) {
-        var shaderScript = document.getElementById(id);
-        if (!shaderScript) { return null; }
-        var str = self.readTextFromScriptAttribute(shaderScript);
-        return self.compileAndAttachShader(gl, type, str);
-    }
-
-    if (fragmentShader && vertexShader) {
-        self.initShaders(fragmentShader, vertexShader);
     }
     return self;
 }

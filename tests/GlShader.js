@@ -11,17 +11,6 @@ test("I can map a shader variable", function() {
     deepEqual(enabled, "test");
 });
 
-test("I can map shader variables", function() {
-
-    var shader = new GlShader();
-    var variables = []; 
-
-    shader.mapShaderVariable = function(v) { variables.push(v); }
-    shader.mapShaderVariabels(["a", "b"]);
-    deepEqual(variables, ["a", "b"]);
-
-});
-
 test("I can map uniform locations", function() {
 
     var mapped = [];
@@ -29,7 +18,7 @@ test("I can map uniform locations", function() {
     var shader = new GlShader(gl);
 
     var map = ["uPMatrix", "uNMatrix"];
-    shader.mapUniformLocations(map);
+    map.map(shader.mapUniformLocation);
 
     deepEqual(mapped, ["uPMatrix", "uNMatrix"]);
     deepEqual(shader.uPMatrix, "uPMatrix");

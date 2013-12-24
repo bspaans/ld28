@@ -154,15 +154,19 @@ var SceneLoader = function() {
 		return shape;
 	}
 
+	self.getShaderFromJSON = function(gl, json) {
+        var shader  = new GlShader(gl);
+		shader.initShaders(
+				self.readTextFromScriptAttribute(json.shader.fragment), 
+				self.readTextFromScriptAttribute(json.shader.vertex), 
+				json.shader.variables, json.shader.uniformLocations);
+		return shader;
+	}
+
     self.buildSceneFromJSON = function(gl, json) {
-
-		var vertexShader    = json.vertexShader;
-		var fragmentShader  = json.fragmentShader;
-		var textureLocation = json.texture;
-
-        var shader  = new GlShader(gl, vertexShader, fragmentShader);
+		var shader  = self.getShaderFromJSON(gl, json);
         var scene   = new GlScene(gl, shader);
-        var texture = new GlTexture(gl, textureLocation, self);
+        var texture = new GlTexture(gl, json.texture, self);
 
 		self.setCubesFromJSON(scene, json, gl, texture);
 		self.setLightingFromJSON(scene, json);
@@ -170,6 +174,16 @@ var SceneLoader = function() {
         sceneHasLoaded = scene;
     }
 
+    self.readTextFromScriptAttribute = function(id) {
+		var elem = document.getElementById(id);
+        var str = "";
+        var k = elem.firstChild;
+        while (k) {
+            if (k.nodeType == 3) { str += k.textContent; }
+            k = k.nextSibling;
+        }
+        return str;
+    }
 
 	self.setCubesFromJSON = function(scene, json, gl, texture) {
 		for (var cubeName in json.cubes) {
@@ -307,56 +321,33 @@ test("I can concatenate cube definitions", function() {
 		deepEqual(result.positions, [0.0,1.0,2.0,1.0,2.0,4.0]);
 		deepEqual(result.normals, [7, 7]);
 });
-var GlShader = function(gl, fragmentShader, vertexShader) {
+var GlShader = function(gl) {
 
     var self = this;
 
     self.mapShaderVariable = function(variable) {
         var a = gl.getAttribLocation(self.program, variable);
-        if (a !== -1) {
-            gl.enableVertexAttribArray(a);
-            console.log("Enabled " + variable);
-            self[variable] = a;
-            return;
-        }
-        console.log("Disabled " + variable);
+        if (a === -1) return;
+        gl.enableVertexAttribArray(a);
+        self[variable] = a;
     }
 
-    self.mapShaderVariabels = function(variables) {
-        variables.map(self.mapShaderVariable);
-    }
-    self.mapUniformLocations = function(locations) {
-        locations.map(function(v) { 
-            self[v] = gl.getUniformLocation(self.program, v);
-        });
+    self.mapUniformLocation = function(variable) {
+        self[variable] = gl.getUniformLocation(self.program, variable);
     }
 
-    self.initShaders = function(fragmentShader, vertexShader) {
-
+    self.initShaders = function(fShader, vShader, vars, uniformLocs) {
         self.program = gl.createProgram();
-        self.addShader(gl, fragmentShader, gl.FRAGMENT_SHADER);
-        self.addShader(gl, vertexShader, gl.VERTEX_SHADER);
+        self.compileAndAttachShader(gl, gl.FRAGMENT_SHADER, fShader);
+        self.compileAndAttachShader(gl, gl.VERTEX_SHADER, vShader);
         gl.linkProgram(self.program);
-
         if (!gl.getProgramParameter(self.program, gl.LINK_STATUS)) {
-            console.log("Could not initialise shaders");
+            throw "Could not initialise shaders";
         }
-
         gl.useProgram(self.program);
-
-        self.mapShaderVariables(["aVertexNormal", "aVertexPosition", "aVertexColor", "aTextureCoord"]);
-        self.mapUniformLocations(["uPMatrix", "uMVMatrix", "uNMatrix", "uSampler", "uAmbientColor", "uLightingDirection", "uDirectionalColor"])
+        uniformLocs.map(self.mapUniformLocation);
+        vars.map(self.mapShaderVariable);
         return self.program;
-    }
-
-    self.readTextFromScriptAttribute = function(elem) {
-        var str = "";
-        var k = elem.firstChild;
-        while (k) {
-            if (k.nodeType == 3) { str += k.textContent; }
-            k = k.nextSibling;
-        }
-        return str;
     }
 
     self.compileAndAttachShader = function(gl, shaderType, shaderScript) {
@@ -369,17 +360,6 @@ var GlShader = function(gl, fragmentShader, vertexShader) {
         }
         gl.attachShader(self.program, shader);
         return shader;
-    }
-
-    self.addShader = function(gl, id, type) {
-        var shaderScript = document.getElementById(id);
-        if (!shaderScript) { return null; }
-        var str = self.readTextFromScriptAttribute(shaderScript);
-        return self.compileAndAttachShader(gl, type, str);
-    }
-
-    if (fragmentShader && vertexShader) {
-        self.initShaders(fragmentShader, vertexShader);
     }
     return self;
 }
@@ -396,17 +376,6 @@ test("I can map a shader variable", function() {
     deepEqual(enabled, "test");
 });
 
-test("I can map shader variables", function() {
-
-    var shader = new GlShader();
-    var variables = []; 
-
-    shader.mapShaderVariable = function(v) { variables.push(v); }
-    shader.mapShaderVariabels(["a", "b"]);
-    deepEqual(variables, ["a", "b"]);
-
-});
-
 test("I can map uniform locations", function() {
 
     var mapped = [];
@@ -414,7 +383,7 @@ test("I can map uniform locations", function() {
     var shader = new GlShader(gl);
 
     var map = ["uPMatrix", "uNMatrix"];
-    shader.mapUniformLocations(map);
+    map.map(shader.mapUniformLocation);
 
     deepEqual(mapped, ["uPMatrix", "uNMatrix"]);
     deepEqual(shader.uPMatrix, "uPMatrix");
