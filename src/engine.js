@@ -214,7 +214,7 @@ var MyGame = function() {
     self.preTick = function(scene) {
         elem_status.innerHTML = self.sceneLoader.getLoadStatus();
         if (!scene) return;
-        if ((scene.finished || self.secondsLeft <= 0) && !self.currentlyPressedKeys[32]) {
+        if ((scene.finished || self.secondsLeft <= 0) && !self.pressed[32]) {
             elem_fps.innerHTML       = "";
             elem_status.innerHTML    = "Press space to play again";
             elem_time_left.innerHTML = "GAME OVER";
@@ -249,18 +249,18 @@ var MyGame = function() {
 
     self.handleInput = function(scene) {
         var p = self.getPlayer(scene);
-        if (self.currentlyPressedKeys[32]) {
+        if (self.pressed[32]) {
             self.resetScene(scene, p.startPosition);
         }
         if (self.finished) { return; }
-        if (self.currentlyPressedKeys[37]) { 
+        if (self.pressed[37]) { 
             p.right();
-        } else if (self.currentlyPressedKeys[39]) { 
+        } else if (self.pressed[39]) { 
             p.left();
         } else {
             p.movingX = 0.0;
         }
-        if (self.currentlyPressedKeys[38]) { 
+        if (self.pressed[38]) { 
             p.up();
         } 
 

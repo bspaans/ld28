@@ -17,10 +17,7 @@ var GlScene = function(gl, shader) {
     var lightingDirection = undefined;
     var directionalColor  = undefined;
 
-    self.setAmbientLighting = function(a) {
-        ambientColor = a;
-    }
-
+    self.setAmbientLighting     = function(a) { ambientColor = a; }
     self.setDirectionalLighting = function(dir, col) {
         lightingDirection = dir;
         directionalColor  = col;

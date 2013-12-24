@@ -1,36 +1,24 @@
 var SceneLoader = function() {
 
     var self = this;
-    var sceneHasLoaded = false;
+    var loadedScene = undefined;
 	self.texturesLoaded = false;
 
     self.getSceneIfReady = function() {
-        if (sceneHasLoaded !== false && self.texturesLoaded) { 
-			return sceneHasLoaded;
-        }
+        return loadedScene && self.texturesLoaded ? loadedScene : undefined;
     }
 
     self.getLoadStatus = function() {
-        if (self.getSceneIfReady()) {
-            return 'loaded';
-        }
-        if (!sceneHasLoaded) {
-            return "loading scene";
-        }
-        if (!self.texturesLoaded) {
-            return 'loading textures';
-        }
+        if (self.getSceneIfReady()) { return 'loaded';           } 
+        if (!loadedScene)           { return "loading scene";    } 
+        if (!self.texturesLoaded)   { return 'loading textures'; } 
     }
 
-
 	self.concatenateCubeJSONArrays = function(cubes, baseVertexNormals) {
-		var result = {
-			"textures"       : [],
-			"shaderPrograms" : [],
-			"positions"      : [],
-			"normals"        : [],
-			"cubePositions"  : []
-		}
+		var result = {}
+		var arrays = ["textures", "shaderPrograms", "positions", 
+					  "normals", "cubePositions"];
+		arrays.map(function(a) { result[a] = []; });
 
         for (var i = 0 ; i < cubes.length; i++) {
             var cube = cubes[i];
@@ -46,8 +34,9 @@ var SceneLoader = function() {
 	self.getTextureCoords = function(baseCoords, tiles, w, h) {
         var textureCoords = [];
         var texture       = textureCoordArray(baseCoords, tiles, w, h);
+		// TODO: necessary? textureCoords = texture   // enough?
         for (var i = 0; i < tiles.length ; i++) {
-             textureCoords = texture.concat(textureCoords);
+             textureCoords = textureCoords.concat(texture);
         }
 		return textureCoords;
 	}
@@ -99,7 +88,7 @@ var SceneLoader = function() {
 		self.setCubesFromJSON(scene, json, gl, texture);
 		self.setLightingFromJSON(scene, json);
 		self.setCameraFromJSON(scene, json);
-        sceneHasLoaded = scene;
+        loadedScene = scene;
     }
 
     self.readTextFromScriptAttribute = function(id) {

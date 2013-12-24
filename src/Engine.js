@@ -1,33 +1,34 @@
+require(["Timer", "SceneLoader"]);
+
 var Engine = function() {
 
-    var TICKS_PER_SECOND = 30;
-    var MS_PER_FRAME = 1000 / TICKS_PER_SECOND;
-    var MAX_FRAMESKIP = 5;
-    var lastTime = 0; 
-    var nextTick = new Date().getTime() + MS_PER_FRAME;
-
     var self = this;
-    self.currentlyPressedKeys = {};
+	var timer = new Timer();
+    var MAX_FRAMESKIP = 5;
+    self.pressed = {};
     self.scene = undefined;
     self.sceneLoader = new SceneLoader(self);
 
     self.initGLOnCanvasElement = function(canvasElement) {
-        try {
-            self.gl = canvasElement.getContext("experimental-webgl");
-        } catch (e) { console.log(e) }
-        if (!self.gl) {
-            throw "WebGL Initialization error"
-        }
-        self.gl.viewportWidth = canvasElement.width;
+        try { self.gl = canvasElement.getContext("experimental-webgl"); } 
+		catch (e) { console.log(e) }
+
+        if (!self.gl) { throw "WebGL Initialization error" }
+        self.gl.viewportWidth  = canvasElement.width;
         self.gl.viewportHeight = canvasElement.height;
         return self.gl;
     }
+
     self.initGLOnCanvas = function(canvasId) {
         var canvas = document.getElementById(canvasId);
-        if (canvas == null) {
-            throw "Can't find canvas with id " + canvasId;
-        }
+        if (canvas == null) { throw "Can't find canvas with id " + canvasId; }
         return self.initGLOnCanvasElement(canvas);
+    }
+
+    self.loadScene = function(resource) {
+        $.getJSON(resource, function(json) {
+            self.sceneLoader.buildSceneFromJSON(self.gl, json);
+        })
     }
 
     self.firstTick = function() {
@@ -37,25 +38,9 @@ var Engine = function() {
         self.tick();
     }
 
-    self.getElapsedTime = function() {
-        var timeNow = new Date().getTime();
-        if (lastTime == 0) { 
-            lastTime = timeNow;
-            return 1;
-        }
-        var elapsed = timeNow - lastTime;
-        lastTime = timeNow;
-        return elapsed;
-    }
-
-    self.inputLoop = function(scene) {
-        var elapsed = self.getElapsedTime();
-        var now = new Date().getTime();
-        var loops = 0;
-        while ( now > nextTick && loops < MAX_FRAMESKIP) {
-            self.inputTick(scene, elapsed);
-            nextTick += MS_PER_FRAME;
-        }
+    self.tick = function() {
+        window.requestAnimationFrame(self.tick);
+        self.engineTick();
     }
     self.preTick = function(scene) { } 
     self.postTick = function(scene) { }
@@ -67,39 +52,27 @@ var Engine = function() {
         self.draw(scene);
     }
 
+    self.inputLoop = function(scene) {
+        var elapsed = timer.getElapsedTime();
+        var now = timer.now();
+        var loops = 0;
+        while (timer.isLaterThanNextTick(now) && loops < MAX_FRAMESKIP) {
+            self.inputTick(scene, elapsed); // TODO what is elapsed doing?
+			timer.calculateNextTick();
+			loops++;
+        }
+    }
+
     self.drawDynamicShapeCallback = undefined;
     self.draw = function(scene) {
         if (!scene) return;
-        var now = new Date().getTime();
-        var placeInFrame = now + MS_PER_FRAME - nextTick;
-        scene.draw( -placeInFrame / MS_PER_FRAME, self.drawDynamicShapeCallback );
+        scene.draw( -timer.getPlaceInFrame(), self.drawDynamicShapeCallback);
     }
-
-    self.tick = function() {
-        window.requestAnimationFrame(self.tick);
-        self.engineTick();
-    }
-
-    self.loadScene = function(resource) {
-        $.getJSON(resource, function(json) {
-            self.sceneLoader.buildSceneFromJSON(self.gl, json);
-        })
-    }
-
-    self.bindEvents = function() {
-        document.onkeydown = self.handleKeyDown;
-        document.onkeyup = self.handleKeyUp;
-    }
-    self.handleKeyDown = function(event) {
-        self.currentlyPressedKeys[event.keyCode] = true;
-    }
-    self.handleKeyUp = function(event) {
-        self.currentlyPressedKeys[event.keyCode] = false;
-    }
-
-    // Override these 
-    self.preTick = undefined;
-    self.postTick = undefined;
-
+    
+    self.onkeydown  = function(event) { self.pressed[event.keyCode] = true; }
+    self.onkeyup    = function(event) { self.pressed[event.keyCode] = false; }
+	self.bindEvents = function() {
+		["onkeydown", "onkeyup"].map(function(e) { document[e] = self[e]; });
+	}
     return self;
 }
