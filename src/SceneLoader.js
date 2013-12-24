@@ -4,10 +4,8 @@ var SceneLoader = function() {
     var sceneHasLoaded = false;
 
     self.getSceneIfReady = function() {
-        if (sceneHasLoaded !== false) {
-            if (sceneHasLoaded.texturesLoaded) { 
-                return sceneHasLoaded;
-            }
+        if (sceneHasLoaded !== false && sceneHasLoaded.texturesLoaded) { 
+			return sceneHasLoaded;
         }
     }
 
@@ -23,59 +21,103 @@ var SceneLoader = function() {
         }
     }
 
-	self.cubesFromJSONList = function(json, cubes, glTexture) {
-		if (!(cubes instanceof Array)) {
-			cubes = [cubes];
-		}
-        var textures = [];
-        var shaderPrograms = [];
-        var positions = [];
-        var normals = [];
-		var cubePositions = [];
 
-        var shape = new GlVertices(gl, glTexture);
+	self.concatenateCubeJSONArrays = function(cubes, baseVertexNormals) {
+		var result = {
+			"textures"       : [],
+			"shaderPrograms" : [],
+			"positions"      : [],
+			"normals"        : [],
+			"cubePositions"  : []
+		}
+
         for (var i = 0 ; i < cubes.length; i++) {
             var cube = cubes[i];
-            textures.push(cube.t);
-            shaderPrograms.push(cube.s);
-            positions = positions.concat(cube.v);
-            normals = normals.concat(shape.baseVertexNormals);
-            if (cube.v[2] == 0.0) {
-                cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
-            }
+            result.textures.push(cube.t);
+            result.shaderPrograms.push(cube.s);
+            result.positions = result.positions.concat(cube.v);
+            result.normals = result.normals.concat(baseVertexNormals);
+			result.cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
         }
-        var vertices = translatedBaseCopies(shape.baseCube, positions);
-        var texture = textureCoordArray(shape.baseCubeTextureCoords, textures, 
-                json.texturesPerRow, json.texturesPerColumn);
-        var indeces = arrayFromInterval(shape.baseCubeIndeces, cubes.length, 24);
+		return result;
+	}
+
+	self.getTextureCoords = function(baseCoords, tiles, w, h) {
         var textureCoords = [];
-        for (var i = 0; i < cubes.length ; i++) {
+        var texture       = textureCoordArray(baseCoords, tiles, w, h);
+        for (var i = 0; i < tiles.length ; i++) {
              textureCoords = texture.concat(textureCoords);
         }
-		shape.json = cubes;
-		shape.positions = cubePositions;
-        shape.setVertices(vertices, indeces, textureCoords, normals);
+		return textureCoords;
+	}
+
+	self.calculateCubeVertices = function(shape, cubes, json) {
+
+		var baseNormals     = shape.baseVertexNormals;
+		var baseCube        = shape.buseCube;
+		var baseCubeIndeces = shape.baseCubeIndeces;
+		var baseTexture     = shape.baseCubeTextureCoords;
+		var tw = json.texturesPerRow;
+		var th = json.texturesPerColumn;
+
+		var a        = self.concatenateCubeJSONArrays(cubes, baseNormals);
+		var vertices = translatedBaseCopies(baseCube, a.positions);
+		var indeces  = arrayFromInterval(baseCubeIndeces, cubes.length, 24);
+		var tCoords  = self.getTextureCoords(baseTexture, a.textures, tw, th);
+
+        shape.setVertices(vertices, indeces, tCoords, a.normals);
+	}
+
+
+	self.cubesFromJSONList = function(json, cubeName, gl, glTexture) {
+		var cubes = json.cubes[cubeName];
+		if (!(cubes instanceof Array)) { cubes = [cubes]; }
+
+        var shape = new GlVertices(gl, glTexture);
+		self.calculateCubeVertices(shape, cubes, json);
+
+		shape.name      = cubeName;
+		shape.json      = cubes;
+		shape.positions = a.cubePositions;
 		return shape;
 	}
 
     self.buildSceneFromJSON = function(gl, json) {
 
-        var shader = new GlShader(gl, json.vertexShader, json.fragmentShader);
-        var scene = new GlScene(gl, shader);
-        var glTexture = new GlTexture(gl, json.texture, scene);
+		var vertexShader    = json.vertexShader;
+		var fragmentShader  = json.fragmentShader;
+		var textureLocation = json.texture;
 
-		for (var cubeName in json.cubes) {
-			console.log("Loading cubes: " + cubeName);
-			var cubes = self.cubesFromJSONList(json, json.cubes[cubeName], glTexture);
-			cubes.name = cubeName;
-			scene.addShape(cubes, cubeName, json.cubes[cubeName]);
-		}
+        var shader  = new GlShader(gl, vertexShader, fragmentShader);
+        var scene   = new GlScene(gl, shader);
+        var texture = new GlTexture(gl, textureLocation, scene);
 
-		scene.setAmbientLighting(json.light.ambient);
-		scene.setDirectionalLighting(json.light.direction, json.light.directionalColor);
-        scene.setCameraPosition(json.camera);
+		self.setCubesFromJSON(scene, json, gl, texture);
+		self.setLightingFromJSON(scene, json);
+		self.setCameraFromJSON(scene, json);
         sceneHasLoaded = scene;
     }
+
+
+	self.setCubesFromJSON = function(scene, json, gl, texture) {
+		for (var cubeName in json.cubes) {
+			console.log("Loading cubes: " + cubeName);
+			var cubes = self.cubesFromJSONList(json, cubeName, gl, texture);
+			scene.addShape(cubes, cubeName, json.cubes[cubeName]);
+		}
+	}
+
+	self.setLightingFromJSON = function(scene, json) {
+		var ambient        = json.light.ambient;
+		var direction      = json.light.direction;
+		var directionColor = json.light.directionalColor;
+		scene.setAmbientLighting(ambient);
+		scene.setDirectionalLighting(direction, directionColor);
+	}
+
+	self.setCameraFromJSON = function(scene, json) {
+        scene.setCameraPosition(json.camera);
+	}
 
     // arr = [x0, y0, z0, x1, y1, z1, ...]
     var translatedBaseCopies = function(base, arr) {
