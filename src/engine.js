@@ -192,6 +192,13 @@ var MyGame = function() {
     self.finished    = false;
     self.secondsLeft = 60;
 
+    audiojs.events.ready(function() {
+        var options = {};
+        self.soundtrack = audiojs.newInstance(document.getElementById("soundtrack"), options);
+        $("#audio").hide();
+        
+    });
+
     self.start = function() {
         try { 
             gl = self.initGLOnCanvas("lesson01-canvas");

@@ -7,51 +7,35 @@ var GlScene = function(gl, shader) {
     
     self.gl = gl;
     self.mm = new GlMatrixManager();
+    self.shader = shader;
     self.camera = new Camera();
     self.cameraStartPosition = undefined;
-    self.shader = shader;
+
     self.namedEntities = {}
-    self.texturesLoaded = false;
-    self.shapes = [];
-    self.solids = [];
+    self.shapes        = [];
 
-    self.ambientColor = undefined;
-    self.lightingDirection = undefined;
-    self.directionalColor = undefined;
-
-    audiojs.events.ready(function() {
-        var options = {};
-        self.soundtrack = audiojs.newInstance(document.getElementById("soundtrack"), options);
-        $("#audio").hide();
-        
-    });
+    var ambientColor      = undefined;
+    var lightingDirection = undefined;
+    var directionalColor  = undefined;
 
     self.setAmbientLighting = function(a) {
-        self.ambientColor = a;
+        ambientColor = a;
     }
+
     self.setDirectionalLighting = function(dir, col) {
-        self.lightingDirection = dir;
-        self.directionalColor = col;
+        lightingDirection = dir;
+        directionalColor  = col;
     }
 
     self.setCameraPosition = function(pos) {
-        self.camera.position = pos;
+        self.camera.position     = pos;
         self.cameraStartPosition = pos.slice(0);
-    }
-
-    // remove with new JSON format
-    self.setPlayer = function(p) {
-        self.addShape(p, "player");
-    }
-
-    self.setSolids = function(s) {
-        self.solids = s;
     }
 
     self.addShape = function(shape, name) {
         shape.name = name;
         self.shapes.push(shape);
-        if (name) { self.namedEntities[name] = shape; }
+        self.namedEntities[name] = shape; 
     }
 
     self.draw = function(interpolation, drawDynamicShapeCallback) {
@@ -62,31 +46,25 @@ var GlScene = function(gl, shader) {
         self.drawShapes(interpolation, drawDynamicShapeCallback);
     }
 
-    self.drawShape = function(shape) {
-        self.mm.setMatrixUniforms(self.gl, self.shader); 
-        shape.draw(self.shader, self.ambientColor, 
-                self.lightingDirection, self.directionalColor);
-    }
-
-    self.drawDynamicShape = function(name, shape, entityRef) {
-        self.drawShape(shape);
-    }
-
-    self.drawShapes = function(interpolation, drawDynamicShapeCallback) {
+    self.drawShapes = function(interpolation, drawDynamicShapeCb) {
         for (var i in self.shapes) {
+            var shape = self.shapes[i];
+            var entity = self.namedEntities[s.name];
             self.mm.mvPushMatrix();
-            var s = self.shapes[i]
-            if (s.name && self.namedEntities[s.name]) {
-                if (drawDynamicShapeCallback) {
-                    drawDynamicShapeCallback(self, s.name, s, self.namedEntities[s.name]);
-                } else {
-                    self.drawDynamicShape(s.name, s, self.namedEntities[s.name]);
-                }
-            } else {
-                self.drawShape(s);
-            }
+            self.drawDynamicShape(shape, entityRef, drawDynamicShapeCb);
             self.mm.mvPopMatrix();
         }
+    }
+
+    self.drawDynamicShape = function(shape, entityRef, cb) {
+        if (!cb) { return self.drawShape(shape); }
+        cb(self, shape.name, shape, entityRef); 
+    }
+
+    self.drawShape = function(shape) {
+        self.mm.setMatrixUniforms(self.gl, self.shader); 
+        shape.draw(self.shader, ambientColor, 
+            lightingDirection, directionalColor);
     }
 
     return self;

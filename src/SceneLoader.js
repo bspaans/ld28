@@ -2,9 +2,10 @@ var SceneLoader = function() {
 
     var self = this;
     var sceneHasLoaded = false;
+	self.texturesLoaded = false;
 
     self.getSceneIfReady = function() {
-        if (sceneHasLoaded !== false && sceneHasLoaded.texturesLoaded) { 
+        if (sceneHasLoaded !== false && self.texturesLoaded) { 
 			return sceneHasLoaded;
         }
     }
@@ -16,7 +17,7 @@ var SceneLoader = function() {
         if (!sceneHasLoaded) {
             return "loading scene";
         }
-        if (!sceneHasLoaded.texturesLoaded) {
+        if (!self.texturesLoaded) {
             return 'loading textures';
         }
     }
@@ -76,7 +77,6 @@ var SceneLoader = function() {
         var shape = new GlVertices(gl, glTexture);
 		self.calculateCubeVertices(shape, cubes, json);
 
-		shape.name      = cubeName;
 		shape.json      = cubes;
 		shape.positions = a.cubePositions;
 		return shape;
@@ -90,7 +90,7 @@ var SceneLoader = function() {
 
         var shader  = new GlShader(gl, vertexShader, fragmentShader);
         var scene   = new GlScene(gl, shader);
-        var texture = new GlTexture(gl, textureLocation, scene);
+        var texture = new GlTexture(gl, textureLocation, self);
 
 		self.setCubesFromJSON(scene, json, gl, texture);
 		self.setLightingFromJSON(scene, json);
@@ -103,7 +103,7 @@ var SceneLoader = function() {
 		for (var cubeName in json.cubes) {
 			console.log("Loading cubes: " + cubeName);
 			var cubes = self.cubesFromJSONList(json, cubeName, gl, texture);
-			scene.addShape(cubes, cubeName, json.cubes[cubeName]);
+			scene.addShape(cubes, cubeName);
 		}
 	}
 

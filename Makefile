@@ -29,6 +29,7 @@ test:
 	echo "// Warning: this is a compiled file" > tests/tests.js
 	cat src/Camera.js tests/Camera.js >> tests/tests.js
 	cat src/SceneLoader.js tests/SceneLoader.js >> tests/tests.js
+	cat src/GlScene.js tests/GlScene.js >> tests/tests.js
 
 
 clean:

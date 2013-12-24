@@ -1,7 +1,6 @@
-var GlTexture = function(gl, img, scene) {
+var GlTexture = function(gl, img, texturesLoadedCallbackObj) {
 
     var self = this;
-    self.scene = scene;
     self.texture = gl.createTexture();
 
     self.loadFromImage = function(img) {
@@ -14,7 +13,7 @@ var GlTexture = function(gl, img, scene) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.generateMipmap(gl.TEXTURE_2D);
             gl.bindTexture(gl.TEXTURE_2D, null);
-            self.scene.texturesLoaded = true;
+            texturesLoadedCallbackObj.texturesLoaded = true;
         }
         self.texture.image.src = img;
     }
