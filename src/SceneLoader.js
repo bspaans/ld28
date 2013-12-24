@@ -15,18 +15,20 @@ var SceneLoader = function() {
         if (!self.texturesLoaded)   { return 'loading textures'; } 
     }
 
+	var buildShape = function(gl, glTexture, cubes, tw, th) {
+		var a = cubeBuilder.calculateCubeVertices(cubes, tw, th);
+        var shape = new GlVertices(gl, glTexture);
+        shape.setVertices(a.vertices, a.indeces, a.tCoords, a.normals);
+		shape.json = cubes;
+		shape.positions = a.cubePositions;
+		return shape;
+	}
+
 	self.cubesFromJSONList = function(json, cubeName, gl, glTexture) {
 		var cubes = json.cubes[cubeName];
 		if (!(cubes instanceof Array)) { cubes = [cubes]; }
-
-        var shape = new GlVertices(gl, glTexture);
-		var tw = json.texturesPerRow;
-		var th = json.texturesPerColumn;
-		cubeBuilder.calculateCubeVertices(shape, cubes, json);
-
-		shape.json      = cubes;
-		shape.positions = a.cubePositions;
-		return shape;
+		var tw = json.texturesPerRow, th = json.texturesPerColumn;
+		return buildShape(gl, glTexture, cubes, tw, th);
 	}
 
 	self.getShaderFromJSON = function(gl, json) {

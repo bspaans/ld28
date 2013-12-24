@@ -86,18 +86,20 @@ var SceneLoader = function() {
         if (!self.texturesLoaded)   { return 'loading textures'; } 
     }
 
+	var buildShape = function(gl, glTexture, cubes, tw, th) {
+		var a = cubeBuilder.calculateCubeVertices(cubes, tw, th);
+        var shape = new GlVertices(gl, glTexture);
+        shape.setVertices(a.vertices, a.indeces, a.tCoords, a.normals);
+		shape.json = cubes;
+		shape.positions = a.cubePositions;
+		return shape;
+	}
+
 	self.cubesFromJSONList = function(json, cubeName, gl, glTexture) {
 		var cubes = json.cubes[cubeName];
 		if (!(cubes instanceof Array)) { cubes = [cubes]; }
-
-        var shape = new GlVertices(gl, glTexture);
-		var tw = json.texturesPerRow;
-		var th = json.texturesPerColumn;
-		cubeBuilder.calculateCubeVertices(shape, cubes, json);
-
-		shape.json      = cubes;
-		shape.positions = a.cubePositions;
-		return shape;
+		var tw = json.texturesPerRow, th = json.texturesPerColumn;
+		return buildShape(gl, glTexture, cubes, tw, th);
 	}
 
 	self.getShaderFromJSON = function(gl, json) {
@@ -370,12 +372,14 @@ var CubeBuilder = function() {
       -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   // left 
     ];
 
-	self.calculateCubeVertices = function(shape, cubes, tw, th) {
-		var a        = self.concatenateCubeJSONArrays(cubes, baseNormals);
-		var tCoords  = getTextureCoords(baseTextureCoords, a.textures, tw, th);
-		var vertices = translatedBaseCopies(basePositions, a.positions);
-		var indeces  = arrayFromInterval(baseIndices, cubes.length, 24);
-        shape.setVertices(vertices, indeces, tCoords, a.normals);
+	self.calculateCubeVertices = function(cubes, tw, th) {
+		var result      = {};
+		var a           = self.concatenateCubeJSONArrays(cubes, baseNormals);
+		result.tCoords  = getTextureCoords(baseTextureCoords, a.textures, tw, th);
+		result.vertices = getPositions(basePositions, a.positions);
+		result.indeces  = getIndices(baseIndices, cubes.length, 24);
+		result.normals  = a.normals;
+		return result;
 	}
 
 	self.concatenateCubeJSONArrays = function(cubes, baseVertexNormals) {
@@ -391,16 +395,12 @@ var CubeBuilder = function() {
         }
 		return result;
 	}
-    // arr = [x0, y0, z0, x1, y1, z1, ...]
-    var translatedBaseCopies = function(base, arr) {
+
+    var getPositions = function(base, arr) {
         var result = new Array(base.length * arr.length / 3);
-        var current = base;
-        var i = 0;
-        var r = 0;
+        var i = 0, r = 0;
         while (i < arr.length) {
-            var x = arr[i++];
-            var y = arr[i++];
-            var z = arr[i++];
+            var x = arr[i++], y = arr[i++], z = arr[i++];
             var j = 0;
             while (j < base.length) {
                 result[r++] = base[j++] + x;
@@ -417,19 +417,13 @@ var CubeBuilder = function() {
             if (v > ma) v = ma;
             return v;
         }
-
-        var result = new Array(base.length * arr.length);
-        var current = base;
-        var i = 0;
-        var r = 0;
-        
-        var tW = 1.0 / w;
-        var tH = 1.0 / h;
+        var result = new Array(base.length * arr.length / 2);
+        var i = 0, r = 0;
+        var tW = 1.0 / w, tH = 1.0 / h;
         var fuzz = 1 / 8980;
         while (i < arr.length) {
             var tex = arr[i++];
-            var tX = tex % w;
-            var tY = Math.floor(tex / w);
+            var tX = tex % w, tY = Math.floor(tex / w);
             var j = 0;
             while (j < base.length) {
                 var b = (base[j++] + tX) / w;
@@ -441,16 +435,12 @@ var CubeBuilder = function() {
         return result;
     }
 
-    var arrayFromInterval = function(base, size, interval) {
+    var getIndices = function(base, size, interval) {
         var result = new Array(base.length * size);
-        var current = base;
-        var i = 0;
-        var r = 0;
+        var i = 0, r = 0;
         while (i < size) {
             var j = 0;
-            while (j < base.length) {
-                result[r++] = base[j++] + interval * i;
-            }
+            while (j < base.length) { result[r++] = base[j++] + interval * i; }
             i++;
         }
         return result;
@@ -472,38 +462,23 @@ test("I can concatenate cube definitions", function() {
 
 test("I can calculate cube vertices", function() {
 
-		var shape = function(result) { return { 
-				"setVertices": function(vert, indeces, tCoords, normals) {
-					result.vert = vert;
-					result.indeces = indeces;
-					result.tCoords = tCoords;
-					result.normals = normals;
-				}
-			}
-		};
 		var builder1 = new CubeBuilder();
 		var builder2 = new CubeBuilder();
-		var result1 = {}
-		var result2 = {}
-		var result3 = {}
-		var shape1 = shape(result1);
-		var shape2 = shape(result2);
-		var shape3 = shape(result3);
 
 		var cubes1 = [{"t": 1, "v": [0.0, 1.0, 2.0]},
 		              {"t": 2, "v": [1.0, 2.0, 4.0]}]
 		var cubes2 = [{"t": 1, "v": [4.0, 1.0, 2.0]},
 		              {"t": 2, "v": [9.0, 2.0, 4.0]}]
 
-		builder1.calculateCubeVertices(shape1, cubes1, 2, 2);
-		builder2.calculateCubeVertices(shape2, cubes2, 2, 2);
-		deepEqual(result1.tCoords, result2.tCoords);
-		notDeepEqual(result1.vert, result2.vert);
+		var r1 = builder1.calculateCubeVertices(cubes1, 2, 2);
+		var r2 = builder2.calculateCubeVertices(cubes2, 2, 2);
+		deepEqual(r1.tCoords, r2.tCoords);
+		notDeepEqual(r1.vertices, r2.vertices);
 
 		var cubes3 = cubes1.concat(cubes2);
-		builder1.calculateCubeVertices(shape3, cubes3, 2, 2);
-		equal(result1.vert.length + result2.vert.length, result3.vert.length);
-		equal(result1.indeces.length + result2.indeces.length, result3.indeces.length);
-		equal(result1.tCoords.length + result2.tCoords.length, result3.tCoords.length);
-		equal(result1.normals.length + result2.normals.length, result3.normals.length);
+		var r3 = builder1.calculateCubeVertices(cubes3, 2, 2);
+		equal(r1.vertices.length + r2.vertices.length, r3.vertices.length);
+		equal(r1.indeces.length + r2.indeces.length, r3.indeces.length);
+		equal(r1.tCoords.length + r2.tCoords.length, r3.tCoords.length);
+		equal(r1.normals.length + r2.normals.length, r3.normals.length);
 });

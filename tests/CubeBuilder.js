@@ -13,38 +13,23 @@ test("I can concatenate cube definitions", function() {
 
 test("I can calculate cube vertices", function() {
 
-		var shape = function(result) { return { 
-				"setVertices": function(vert, indeces, tCoords, normals) {
-					result.vert = vert;
-					result.indeces = indeces;
-					result.tCoords = tCoords;
-					result.normals = normals;
-				}
-			}
-		};
 		var builder1 = new CubeBuilder();
 		var builder2 = new CubeBuilder();
-		var result1 = {}
-		var result2 = {}
-		var result3 = {}
-		var shape1 = shape(result1);
-		var shape2 = shape(result2);
-		var shape3 = shape(result3);
 
 		var cubes1 = [{"t": 1, "v": [0.0, 1.0, 2.0]},
 		              {"t": 2, "v": [1.0, 2.0, 4.0]}]
 		var cubes2 = [{"t": 1, "v": [4.0, 1.0, 2.0]},
 		              {"t": 2, "v": [9.0, 2.0, 4.0]}]
 
-		builder1.calculateCubeVertices(shape1, cubes1, 2, 2);
-		builder2.calculateCubeVertices(shape2, cubes2, 2, 2);
-		deepEqual(result1.tCoords, result2.tCoords);
-		notDeepEqual(result1.vert, result2.vert);
+		var r1 = builder1.calculateCubeVertices(cubes1, 2, 2);
+		var r2 = builder2.calculateCubeVertices(cubes2, 2, 2);
+		deepEqual(r1.tCoords, r2.tCoords);
+		notDeepEqual(r1.vertices, r2.vertices);
 
 		var cubes3 = cubes1.concat(cubes2);
-		builder1.calculateCubeVertices(shape3, cubes3, 2, 2);
-		equal(result1.vert.length + result2.vert.length, result3.vert.length);
-		equal(result1.indeces.length + result2.indeces.length, result3.indeces.length);
-		equal(result1.tCoords.length + result2.tCoords.length, result3.tCoords.length);
-		equal(result1.normals.length + result2.normals.length, result3.normals.length);
+		var r3 = builder1.calculateCubeVertices(cubes3, 2, 2);
+		equal(r1.vertices.length + r2.vertices.length, r3.vertices.length);
+		equal(r1.indeces.length + r2.indeces.length, r3.indeces.length);
+		equal(r1.tCoords.length + r2.tCoords.length, r3.tCoords.length);
+		equal(r1.normals.length + r2.normals.length, r3.normals.length);
 });

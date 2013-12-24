@@ -37,12 +37,14 @@ var CubeBuilder = function() {
       -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   // left 
     ];
 
-	self.calculateCubeVertices = function(shape, cubes, tw, th) {
-		var a        = self.concatenateCubeJSONArrays(cubes, baseNormals);
-		var tCoords  = getTextureCoords(baseTextureCoords, a.textures, tw, th);
-		var vertices = translatedBaseCopies(basePositions, a.positions);
-		var indeces  = arrayFromInterval(baseIndices, cubes.length, 24);
-        shape.setVertices(vertices, indeces, tCoords, a.normals);
+	self.calculateCubeVertices = function(cubes, tw, th) {
+		var result      = {};
+		var a           = self.concatenateCubeJSONArrays(cubes, baseNormals);
+		result.tCoords  = getTextureCoords(baseTextureCoords, a.textures, tw, th);
+		result.vertices = getPositions(basePositions, a.positions);
+		result.indeces  = getIndices(baseIndices, cubes.length, 24);
+		result.normals  = a.normals;
+		return result;
 	}
 
 	self.concatenateCubeJSONArrays = function(cubes, baseVertexNormals) {
@@ -58,15 +60,12 @@ var CubeBuilder = function() {
         }
 		return result;
 	}
-    // arr = [x0, y0, z0, x1, y1, z1, ...]
-    var translatedBaseCopies = function(base, arr) {
+
+    var getPositions = function(base, arr) {
         var result = new Array(base.length * arr.length / 3);
-        var i = 0;
-        var r = 0;
+        var i = 0, r = 0;
         while (i < arr.length) {
-            var x = arr[i++];
-            var y = arr[i++];
-            var z = arr[i++];
+            var x = arr[i++], y = arr[i++], z = arr[i++];
             var j = 0;
             while (j < base.length) {
                 result[r++] = base[j++] + x;
@@ -83,18 +82,13 @@ var CubeBuilder = function() {
             if (v > ma) v = ma;
             return v;
         }
-
-        var result = new Array(base.length * arr.length);
-        var i = 0;
-        var r = 0;
-        
-        var tW = 1.0 / w;
-        var tH = 1.0 / h;
+        var result = new Array(base.length * arr.length / 2);
+        var i = 0, r = 0;
+        var tW = 1.0 / w, tH = 1.0 / h;
         var fuzz = 1 / 8980;
         while (i < arr.length) {
             var tex = arr[i++];
-            var tX = tex % w;
-            var tY = Math.floor(tex / w);
+            var tX = tex % w, tY = Math.floor(tex / w);
             var j = 0;
             while (j < base.length) {
                 var b = (base[j++] + tX) / w;
@@ -106,15 +100,12 @@ var CubeBuilder = function() {
         return result;
     }
 
-    var arrayFromInterval = function(base, size, interval) {
+    var getIndices = function(base, size, interval) {
         var result = new Array(base.length * size);
-        var i = 0;
-        var r = 0;
+        var i = 0, r = 0;
         while (i < size) {
             var j = 0;
-            while (j < base.length) {
-                result[r++] = base[j++] + interval * i;
-            }
+            while (j < base.length) { result[r++] = base[j++] + interval * i; }
             i++;
         }
         return result;
