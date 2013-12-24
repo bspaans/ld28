@@ -326,10 +326,9 @@ var GlShader = function(gl) {
     var self = this;
 
     self.mapShaderVariable = function(variable) {
-        var a = gl.getAttribLocation(self.program, variable);
-        if (a === -1) return;
-        gl.enableVertexAttribArray(a);
-        self[variable] = a;
+        self[variable] = gl.getAttribLocation(self.program, variable);
+        if (self[variable] === -1) return self[variable] = undefined;
+        gl.enableVertexAttribArray(self[variable]);
     }
 
     self.mapUniformLocation = function(variable) {
@@ -374,6 +373,21 @@ test("I can map a shader variable", function() {
 
     shader.mapShaderVariable("test");
     deepEqual(enabled, "test");
+    deepEqual(shader.test, "test");
+});
+
+test("I can't map a shader variable that doesn't exist", function() {
+
+    var enabled = null;
+    var gl = { 
+        "getAttribLocation": function(p, variable) { return -1; },
+        "enableVertexAttribArray": function(a) { enabled = a; }
+    };
+    var shader = new GlShader(gl);
+
+    shader.mapShaderVariable("test");
+    deepEqual(enabled, null);
+    deepEqual(shader["test"], undefined);
 });
 
 test("I can map uniform locations", function() {

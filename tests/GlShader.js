@@ -9,6 +9,21 @@ test("I can map a shader variable", function() {
 
     shader.mapShaderVariable("test");
     deepEqual(enabled, "test");
+    deepEqual(shader.test, "test");
+});
+
+test("I can't map a shader variable that doesn't exist", function() {
+
+    var enabled = null;
+    var gl = { 
+        "getAttribLocation": function(p, variable) { return -1; },
+        "enableVertexAttribArray": function(a) { enabled = a; }
+    };
+    var shader = new GlShader(gl);
+
+    shader.mapShaderVariable("test");
+    deepEqual(enabled, null);
+    deepEqual(shader["test"], undefined);
 });
 
 test("I can map uniform locations", function() {

@@ -3,10 +3,9 @@ var GlShader = function(gl) {
     var self = this;
 
     self.mapShaderVariable = function(variable) {
-        var a = gl.getAttribLocation(self.program, variable);
-        if (a === -1) return;
-        gl.enableVertexAttribArray(a);
-        self[variable] = a;
+        self[variable] = gl.getAttribLocation(self.program, variable);
+        if (self[variable] === -1) return self[variable] = undefined;
+        gl.enableVertexAttribArray(self[variable]);
     }
 
     self.mapUniformLocation = function(variable) {
