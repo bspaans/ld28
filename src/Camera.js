@@ -13,24 +13,16 @@ var Camera = function() {
         // GLOBAL mat4
         mat4.perspective(fov, widthToHeightRatio, cutOffClose, cutOffFarAway, self.matrix);
         mat4.translate(self.matrix, self.position);
-        //mat4.rotate(self.matrix, 0.2, [0.0, 1.0, 0.0]);
-        //mat4.rotate(self.matrix, 0.5, [1.0, 0.0, 0.0]);
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, self.matrix);
     }
 
-    self.getX = function() {
-        return -self.position[0];
-    }
+    self.getX  = function()  { return -self.position[0]; } 
+    self.getY  = function()  { return -self.position[1]; } 
+    self.getZ  = function()  { return -self.position[2]; } 
 
-    self.moveX = function(d) {
-        self.position[0] += -d;
-    }
-    self.moveY = function(d) {
-        self.position[1] += -d;
-    }
-    self.moveZ = function(d) {
-        self.position[2] += -d;
-    }
+    self.moveX = function(d) { self.position[0] += -d;   } 
+    self.moveY = function(d) { self.position[1] += -d;   } 
+    self.moveZ = function(d) { self.position[2] += -d;   } 
 
     return self;
 }
