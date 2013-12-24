@@ -1,10 +1,8 @@
-require(["GlShape"]);
-
 var GlVertices = function(gl, texture) {
 
-    var self = new GlShape(gl);
+    var self = this;
+    self.gl = gl;
     self.texture = texture;
-    self.numberOfPositionVertices = 0;
     self.baseCube = [
       // Front face
       -1.0, -1.0,  1.0,
@@ -128,17 +126,32 @@ var GlVertices = function(gl, texture) {
     ];
 
     self.setVertices = function(vertices, indeces, textureCoords, normals) {
-        self.positionBuffer = self.createArrayBuffer(vertices);
-        self.numberOfPositionVertices = vertices.length;
-        self.vertexIndexBuffer = self.createElementArrayBuffer(indeces);
-        self.vertexTextureCoordsBuffer = self.createArrayBuffer(textureCoords);
-        self.vertexNormalBuffer = self.createArrayBuffer(normals);
+        self.vertexIndexBuffer         = self.createElementArrayBuffer(new Uint16Array(indeces));
+        self.positionBuffer            = self.createArrayBuffer(new Float32Array(vertices));
+        self.vertexTextureCoordsBuffer = self.createArrayBuffer(new Float32Array(textureCoords));
+        self.vertexNormalBuffer        = self.createArrayBuffer(new Float32Array(normals));
+        self.numberOfPositionVertices  = vertices.length;
+    }
+
+    self.createArrayBuffer        = function(arr) { return self.createBuffer(self.gl.ARRAY_BUFFER, arr); }
+    self.createElementArrayBuffer = function(arr) { return self.createBuffer(self.gl.ELEMENT_ARRAY_BUFFER, arr); }
+
+    self.createBuffer = function(type, arr) {
+        var buf = self.gl.createBuffer();
+        self.gl.bindBuffer(type, buf);
+        self.gl.bufferData(type, arr, self.gl.STATIC_DRAW);
+        return buf;
+    }
+
+    self.assignToShaderVariable = function(attr, buf, item_size) {
+        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, buf);
+        self.gl.vertexAttribPointer(attr, item_size, self.gl.FLOAT, false, 0, 0);
     }
 
     self.draw = function(shader, ambientColor, lightingDirection, directionalColor) {
-        self.assignBufferToShaderProgramAttribute(shader.aVertexPosition, self.positionBuffer, 3);
-        self.assignBufferToShaderProgramAttribute(shader.aTextureCoord, self.vertexTextureCoordsBuffer, 2); 
-        self.assignBufferToShaderProgramAttribute(shader.aVertexNormal, self.vertexNormalBuffer, 3); 
+        self.assignToShaderVariable(shader.aVertexPosition, self.positionBuffer, 3);
+        self.assignToShaderVariable(shader.aTextureCoord, self.vertexTextureCoordsBuffer, 2); 
+        self.assignToShaderVariable(shader.aVertexNormal, self.vertexNormalBuffer, 3); 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, self.texture.texture);
         gl.uniform1i(shader.uSampler, 0);
