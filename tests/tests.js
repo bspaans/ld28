@@ -1,41 +1,35 @@
 // Warning: this is a compiled file
 var Camera = function() {
-    var self = this;
+    var self     = this;
+    var fov      = 45; 
+    var tooFar   = 100; 
+    var tooClose = 0.1; 
 
-    self.matrix = mat4.create();
+    var matrix    = mat4.create();
     self.position = vec3.create();
 
+    self.perspectiveMatrix = function(viewportRatio) {
+        mat4.perspective(fov, viewportRatio, tooClose, tooFar, matrix);
+        mat4.translate(matrix, self.position);
+        return matrix;
+    }
+
     self.setGlPerspective = function(gl, shaderProgram) {
-        var fov = 45;
-        var widthToHeightRatio = gl.viewportWidth / gl.viewportHeight;
-        var cutOffClose = 0.1;
-        var cutOffFarAway = 100.0;
-
-        // GLOBAL mat4
-        mat4.perspective(fov, widthToHeightRatio, cutOffClose, cutOffFarAway, self.matrix);
-        mat4.translate(self.matrix, self.position);
-        //mat4.rotate(self.matrix, 0.2, [0.0, 1.0, 0.0]);
-        //mat4.rotate(self.matrix, 0.5, [1.0, 0.0, 0.0]);
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, self.matrix);
+        var viewportRatio = gl.viewportWidth / gl.viewportHeight;
+        var m = self.perspectiveMatrix(viewportRatio);
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, m);
     }
 
-    self.getX = function() { return -self.position[0]; }
-    self.getY = function() { return -self.position[1]; }
-    self.getZ = function() { return -self.position[2]; }
+    self.getX  = function()  { return -self.position[0]; } 
+    self.getY  = function()  { return -self.position[1]; } 
+    self.getZ  = function()  { return -self.position[2]; } 
 
-    self.moveX = function(d) {
-        self.position[0] += -d;
-    }
-    self.moveY = function(d) {
-        self.position[1] += -d;
-    }
-    self.moveZ = function(d) {
-        self.position[2] += -d;
-    }
+    self.moveX = function(d) { self.position[0] += -d;   } 
+    self.moveY = function(d) { self.position[1] += -d;   } 
+    self.moveZ = function(d) { self.position[2] += -d;   } 
 
     return self;
 }
-
 
 
 test("I can move the camera to the left and right", function() {
@@ -75,4 +69,17 @@ test("I can move the camera back and forth", function() {
         equal(camera.getZ(), 0);
         camera.moveZ(-2);
         equal(camera.getZ(), -2);
+});
+
+test("If I move the camera, the perspective matrix changes accordingly", function() {
+
+        var camera = new Camera();
+        var pMatrix = mat4.create();
+        var pMatrixCamera = camera.perspectiveMatrix();
+        //mat4.set(pMatrixCamera, pMatrix);
+
+        deepEqual(pMatrix, pMatrixCamera);
+        camera.moveX(2);
+        var pMatrixCamera = camera.perspectiveMatrix();
+        deepEqual(pMatrix, pMatrixCamera);
 });

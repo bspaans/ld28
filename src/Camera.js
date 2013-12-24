@@ -1,19 +1,22 @@
 var Camera = function() {
-    var self = this;
+    var self     = this;
+    var fov      = 45; 
+    var tooFar   = 100; 
+    var tooClose = 0.1; 
 
-    self.matrix = mat4.create();
+    var matrix    = mat4.create();
     self.position = vec3.create();
 
-    self.setGlPerspective = function(gl, shaderProgram) {
-        var fov = 45;
-        var widthToHeightRatio = gl.viewportWidth / gl.viewportHeight;
-        var cutOffClose = 0.1;
-        var cutOffFarAway = 100.0;
+    self.perspectiveMatrix = function(viewportRatio) {
+        mat4.perspective(fov, viewportRatio, tooClose, tooFar, matrix);
+        mat4.translate(matrix, self.position);
+        return matrix;
+    }
 
-        // GLOBAL mat4
-        mat4.perspective(fov, widthToHeightRatio, cutOffClose, cutOffFarAway, self.matrix);
-        mat4.translate(self.matrix, self.position);
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, self.matrix);
+    self.setGlPerspective = function(gl, shaderProgram) {
+        var viewportRatio = gl.viewportWidth / gl.viewportHeight;
+        var m = self.perspectiveMatrix(viewportRatio);
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, m);
     }
 
     self.getX  = function()  { return -self.position[0]; } 
@@ -26,4 +29,3 @@ var Camera = function() {
 
     return self;
 }
-
