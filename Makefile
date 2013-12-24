@@ -31,6 +31,8 @@ test:
 	cat src/SceneLoader.js tests/SceneLoader.js >> tests/tests.js
 	cat src/GlShader.js tests/GlShader.js >> tests/tests.js
 	cat src/ModelViewMatrixManager.js tests/ModelViewMatrixManager.js >> tests/tests.js
+	cat src/CubeBuilder.js tests/CubeBuilder.js >> tests/tests.js
+	sed -i '/^\(require\|define\)(.*);\?\s*$$/d' tests/tests.js
 
 
 clean:

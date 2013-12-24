@@ -34,15 +34,3 @@ test("I can set the camera position from JSON", function() {
 		deepEqual(cameraPosition, [-0.2, 0.5, -35])
 });
 
-test("I can concatenate cube definitions", function() {
-
-		var json = [{"t": 1, "s": 2, "v": [0.0, 1.0, 2.0]},
-		            {"t": 2, "s": 3, "v": [1.0, 2.0, 4.0]}]
-		var loader = new SceneLoader();
-		var result = loader.concatenateCubeJSONArrays(json, 7);
-
-		deepEqual(result.textures, [1,2]);
-		deepEqual(result.shaderPrograms, [2,3]);
-		deepEqual(result.positions, [0.0,1.0,2.0,1.0,2.0,4.0]);
-		deepEqual(result.normals, [7, 7]);
-});

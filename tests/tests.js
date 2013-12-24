@@ -71,9 +71,9 @@ test("I can move the camera back and forth", function() {
         equal(camera.getZ(), -2);
 });
 var SceneLoader = function() {
-
     var self = this;
     var loadedScene = undefined;
+	var cubeBuilder = new CubeBuilder();
 	self.texturesLoaded = false;
 
     self.getSceneIfReady = function() {
@@ -86,57 +86,14 @@ var SceneLoader = function() {
         if (!self.texturesLoaded)   { return 'loading textures'; } 
     }
 
-	self.concatenateCubeJSONArrays = function(cubes, baseVertexNormals) {
-		var result = {}
-		var arrays = ["textures", "shaderPrograms", "positions", 
-					  "normals", "cubePositions"];
-		arrays.map(function(a) { result[a] = []; });
-
-        for (var i = 0 ; i < cubes.length; i++) {
-            var cube = cubes[i];
-            result.textures.push(cube.t);
-            result.shaderPrograms.push(cube.s);
-            result.positions = result.positions.concat(cube.v);
-            result.normals = result.normals.concat(baseVertexNormals);
-			result.cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
-        }
-		return result;
-	}
-
-	self.getTextureCoords = function(baseCoords, tiles, w, h) {
-        var textureCoords = [];
-        var texture       = textureCoordArray(baseCoords, tiles, w, h);
-		// TODO: necessary? textureCoords = texture   // enough?
-        for (var i = 0; i < tiles.length ; i++) {
-             textureCoords = textureCoords.concat(texture);
-        }
-		return textureCoords;
-	}
-
-	self.calculateCubeVertices = function(shape, cubes, json) {
-
-		var baseNormals     = shape.baseVertexNormals;
-		var baseCube        = shape.buseCube;
-		var baseCubeIndeces = shape.baseCubeIndeces;
-		var baseTexture     = shape.baseCubeTextureCoords;
-		var tw = json.texturesPerRow;
-		var th = json.texturesPerColumn;
-
-		var a        = self.concatenateCubeJSONArrays(cubes, baseNormals);
-		var vertices = translatedBaseCopies(baseCube, a.positions);
-		var indeces  = arrayFromInterval(baseCubeIndeces, cubes.length, 24);
-		var tCoords  = self.getTextureCoords(baseTexture, a.textures, tw, th);
-
-        shape.setVertices(vertices, indeces, tCoords, a.normals);
-	}
-
-
 	self.cubesFromJSONList = function(json, cubeName, gl, glTexture) {
 		var cubes = json.cubes[cubeName];
 		if (!(cubes instanceof Array)) { cubes = [cubes]; }
 
         var shape = new GlVertices(gl, glTexture);
-		self.calculateCubeVertices(shape, cubes, json);
+		var tw = json.texturesPerRow;
+		var th = json.texturesPerColumn;
+		cubeBuilder.calculateCubeVertices(shape, cubes, json);
 
 		shape.json      = cubes;
 		shape.positions = a.cubePositions;
@@ -194,71 +151,6 @@ var SceneLoader = function() {
         scene.setCameraPosition(json.camera);
 	}
 
-    // arr = [x0, y0, z0, x1, y1, z1, ...]
-    var translatedBaseCopies = function(base, arr) {
-        var result = new Array(base.length * arr.length / 3);
-        var current = base;
-        var i = 0;
-        var r = 0;
-        while (i < arr.length) {
-            var x = arr[i++];
-            var y = arr[i++];
-            var z = arr[i++];
-            var j = 0;
-            while (j < base.length) {
-                result[r++] = base[j++] + x;
-                result[r++] = base[j++] + y;
-                result[r++] = base[j++] + z;
-            }
-        }
-        return result;
-    }
-
-    var textureCoordArray = function(base, arr, w, h) {
-
-        var clamp = function(v, mi, ma) {
-            if (v < mi) v = mi;
-            if (v > ma) v = ma;
-            return v;
-        }
-
-        var result = new Array(base.length * arr.length);
-        var current = base;
-        var i = 0;
-        var r = 0;
-        
-        var tW = 1.0 / w;
-        var tH = 1.0 / h;
-        var fuzz = 1 / 8980;
-        while (i < arr.length) {
-            var tex = arr[i++];
-            var tX = tex % w;
-            var tY = Math.floor(tex / w);
-            var j = 0;
-            while (j < base.length) {
-                var b = (base[j++] + tX) / w;
-                result[r++] = clamp(b, b + fuzz, b + tW - fuzz);
-                b = 1.0 - ((base[j++] + tY) / h);
-                result[r++] = clamp(b, b + fuzz, b + tH - fuzz);; 
-            }
-        }
-        return result;
-    }
-
-    var arrayFromInterval = function(base, size, interval) {
-        var result = new Array(base.length * size);
-        var current = base;
-        var i = 0;
-        var r = 0;
-        while (i < size) {
-            var j = 0;
-            while (j < base.length) {
-                result[r++] = base[j++] + interval * i;
-            }
-            i++;
-        }
-        return result;
-    }
 
     return self;
 }
@@ -298,18 +190,6 @@ test("I can set the camera position from JSON", function() {
 		deepEqual(cameraPosition, [-0.2, 0.5, -35])
 });
 
-test("I can concatenate cube definitions", function() {
-
-		var json = [{"t": 1, "s": 2, "v": [0.0, 1.0, 2.0]},
-		            {"t": 2, "s": 3, "v": [1.0, 2.0, 4.0]}]
-		var loader = new SceneLoader();
-		var result = loader.concatenateCubeJSONArrays(json, 7);
-
-		deepEqual(result.textures, [1,2]);
-		deepEqual(result.shaderPrograms, [2,3]);
-		deepEqual(result.positions, [0.0,1.0,2.0,1.0,2.0,4.0]);
-		deepEqual(result.normals, [7, 7]);
-});
 var GlShader = function(gl) {
 
     var self = this;
@@ -450,4 +330,180 @@ test("I can push and pop a mvMatrix on the stack", function() {
 	mm.pop();
 	deepEqual(m1, mm.getMatrixCopy());
 	
+});
+var CubeBuilder = function() {
+	var self = this;
+
+    var basePositions = [
+      -1.0, -1.0,  1.0,    1.0, -1.0,  1.0,    1.0,  1.0,  1.0,   -1.0,  1.0,  1.0,  // front
+      -1.0, -1.0, -1.0,   -1.0,  1.0, -1.0,    1.0,  1.0, -1.0,    1.0, -1.0, -1.0,  // back
+      -1.0,  1.0, -1.0,   -1.0,  1.0,  1.0,    1.0,  1.0,  1.0,    1.0,  1.0, -1.0,  // top
+      -1.0, -1.0, -1.0,    1.0, -1.0, -1.0,    1.0, -1.0,  1.0,   -1.0, -1.0,  1.0,  // bottom
+       1.0, -1.0, -1.0,    1.0,  1.0, -1.0,    1.0,  1.0,  1.0,    1.0, -1.0,  1.0,  // right
+      -1.0, -1.0, -1.0,   -1.0, -1.0,  1.0,   -1.0,  1.0,  1.0,   -1.0,  1.0, -1.0   // left
+    ];
+
+    var baseIndices = [
+       0,  1,  2,    0,  2,  3,  // Front face
+       4,  5,  6,    4,  6,  7,  // Back face
+       8,  9, 10,    8, 10, 11,  // Top face
+      12, 13, 14,   12, 14, 15,  // Bottom face
+      16, 17, 18,   16, 18, 19,  // Right face
+      20, 21, 22,   20, 22, 23   // Left face
+    ];
+
+    var baseTextureCoords = [
+      0.0, 0.0,   1.0, 0.0,   1.0, 1.0,   0.0, 1.0, // front
+      1.0, 0.0,   1.0, 1.0,   0.0, 1.0,   0.0, 0.0, // back
+      0.0, 1.0,   0.0, 0.0,   1.0, 0.0,   1.0, 1.0, // top
+      1.0, 1.0,   0.0, 1.0,   0.0, 0.0,   1.0, 0.0, // bottom
+      1.0, 0.0,   1.0, 1.0,   0.0, 1.0,   0.0, 0.0, // right
+      0.0, 0.0,   1.0, 0.0,   1.0, 1.0,   0.0, 1.0  // left
+    ];
+    
+    var baseNormals = [
+       0.0,  0.0,  1.0,    0.0,  0.0,  1.0,    0.0,  0.0,  1.0,    0.0,  0.0,  1.0,   // front 
+       0.0,  0.0, -1.0,    0.0,  0.0, -1.0,    0.0,  0.0, -1.0,    0.0,  0.0, -1.0,   // back 
+       0.0,  1.0,  0.0,    0.0,  1.0,  0.0,    0.0,  1.0,  0.0,    0.0,  1.0,  0.0,   // top 
+       0.0, -1.0,  0.0,    0.0, -1.0,  0.0,    0.0, -1.0,  0.0,    0.0, -1.0,  0.0,   // bottom 
+       1.0,  0.0,  0.0,    1.0,  0.0,  0.0,    1.0,  0.0,  0.0,    1.0,  0.0,  0.0,   // right 
+      -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   // left 
+    ];
+
+	self.calculateCubeVertices = function(shape, cubes, tw, th) {
+		var a        = self.concatenateCubeJSONArrays(cubes, baseNormals);
+		var tCoords  = getTextureCoords(baseTextureCoords, a.textures, tw, th);
+		var vertices = translatedBaseCopies(basePositions, a.positions);
+		var indeces  = arrayFromInterval(baseIndices, cubes.length, 24);
+        shape.setVertices(vertices, indeces, tCoords, a.normals);
+	}
+
+	self.concatenateCubeJSONArrays = function(cubes, baseVertexNormals) {
+		var result = {}
+		var initResult = function(a) { result[a] = []; };
+		["textures", "positions", "normals", "cubePositions"].map(initResult);
+
+        for (var i = 0, cube ; i < cubes.length, cube = cubes[i]; i++) {
+            result.textures.push(cube.t);
+            result.positions = result.positions.concat(cube.v);
+            result.normals = result.normals.concat(baseVertexNormals);
+			result.cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
+        }
+		return result;
+	}
+    // arr = [x0, y0, z0, x1, y1, z1, ...]
+    var translatedBaseCopies = function(base, arr) {
+        var result = new Array(base.length * arr.length / 3);
+        var current = base;
+        var i = 0;
+        var r = 0;
+        while (i < arr.length) {
+            var x = arr[i++];
+            var y = arr[i++];
+            var z = arr[i++];
+            var j = 0;
+            while (j < base.length) {
+                result[r++] = base[j++] + x;
+                result[r++] = base[j++] + y;
+                result[r++] = base[j++] + z;
+            }
+        }
+        return result;
+    }
+
+    var getTextureCoords = function(base, arr, w, h) {
+        var clamp = function(v, mi, ma) {
+            if (v < mi) v = mi;
+            if (v > ma) v = ma;
+            return v;
+        }
+
+        var result = new Array(base.length * arr.length);
+        var current = base;
+        var i = 0;
+        var r = 0;
+        
+        var tW = 1.0 / w;
+        var tH = 1.0 / h;
+        var fuzz = 1 / 8980;
+        while (i < arr.length) {
+            var tex = arr[i++];
+            var tX = tex % w;
+            var tY = Math.floor(tex / w);
+            var j = 0;
+            while (j < base.length) {
+                var b = (base[j++] + tX) / w;
+                result[r++] = clamp(b, b + fuzz, b + tW - fuzz);
+                b = 1.0 - ((base[j++] + tY) / h);
+                result[r++] = clamp(b, b + fuzz, b + tH - fuzz);; 
+            }
+        }
+        return result;
+    }
+
+    var arrayFromInterval = function(base, size, interval) {
+        var result = new Array(base.length * size);
+        var current = base;
+        var i = 0;
+        var r = 0;
+        while (i < size) {
+            var j = 0;
+            while (j < base.length) {
+                result[r++] = base[j++] + interval * i;
+            }
+            i++;
+        }
+        return result;
+    }
+	return self;
+}
+test("I can concatenate cube definitions", function() {
+
+		var json = [{"t": 1, "v": [0.0, 1.0, 2.0]},
+		            {"t": 2, "v": [1.0, 2.0, 4.0]}]
+		var builder = new CubeBuilder();
+		var result = builder.concatenateCubeJSONArrays(json, 7);
+
+		deepEqual(result.textures, [1,2]);
+		deepEqual(result.positions, [0.0,1.0,2.0,1.0,2.0,4.0]);
+		deepEqual(result.normals, [7, 7]);
+});
+
+
+test("I can calculate cube vertices", function() {
+
+		var shape = function(result) { return { 
+				"setVertices": function(vert, indeces, tCoords, normals) {
+					result.vert = vert;
+					result.indeces = indeces;
+					result.tCoords = tCoords;
+					result.normals = normals;
+				}
+			}
+		};
+		var builder1 = new CubeBuilder();
+		var builder2 = new CubeBuilder();
+		var result1 = {}
+		var result2 = {}
+		var result3 = {}
+		var shape1 = shape(result1);
+		var shape2 = shape(result2);
+		var shape3 = shape(result3);
+
+		var cubes1 = [{"t": 1, "v": [0.0, 1.0, 2.0]},
+		              {"t": 2, "v": [1.0, 2.0, 4.0]}]
+		var cubes2 = [{"t": 1, "v": [4.0, 1.0, 2.0]},
+		              {"t": 2, "v": [9.0, 2.0, 4.0]}]
+
+		builder1.calculateCubeVertices(shape1, cubes1, 2, 2);
+		builder2.calculateCubeVertices(shape2, cubes2, 2, 2);
+		deepEqual(result1.tCoords, result2.tCoords);
+		notDeepEqual(result1.vert, result2.vert);
+
+		var cubes3 = cubes1.concat(cubes2);
+		builder1.calculateCubeVertices(shape3, cubes3, 2, 2);
+		equal(result1.vert.length + result2.vert.length, result3.vert.length);
+		equal(result1.indeces.length + result2.indeces.length, result3.indeces.length);
+		equal(result1.tCoords.length + result2.tCoords.length, result3.tCoords.length);
+		equal(result1.normals.length + result2.normals.length, result3.normals.length);
 });

@@ -225,9 +225,7 @@ var MyGame = function() {
 
     self.getPlayer = function(scene) {
         var p = scene.namedEntities.player;
-        if (p instanceof Player) {
-            return p;
-        }
+        if (p instanceof Player) { return p; }
         scene.namedEntities.player = new Player(scene.namedEntities.player);
         return scene.namedEntities.player;
     }
@@ -249,20 +247,13 @@ var MyGame = function() {
 
     self.handleInput = function(scene) {
         var p = self.getPlayer(scene);
-        if (self.pressed[32]) {
-            self.resetScene(scene, p.startPosition);
-        }
-        if (self.finished) { return; }
-        if (self.pressed[37]) { 
-            p.right();
-        } else if (self.pressed[39]) { 
-            p.left();
-        } else {
-            p.movingX = 0.0;
-        }
-        if (self.pressed[38]) { 
-            p.up();
-        } 
+        if      (self.pressed[32]) { self.resetScene(scene, p.startPosition); }
+        if      (self.finished)    { return; }
+
+        if      (self.pressed[38]) { p.up();          } 
+        if      (self.pressed[37]) { p.right();       } 
+        else if (self.pressed[39]) { p.left();        } 
+        else                       { p.movingX = 0.0; } 
 
         p.move(scene.namedEntities.world.positions);
 
@@ -295,13 +286,9 @@ var MyGame = function() {
 
     self.postTick = function(scene) {
         if (!scene) return;
-        if (self.secondsLeft >= 60) {
-            var t = "1:00";
-        } else if (self.secondsLeft < 10) {
-            var t = "0:0" + self.secondsLeft;
-        } else {
-            var t = "0:" + self.secondsLeft;
-        }
+        if      (self.secondsLeft >= 60) { var t = "1:00"; } 
+		else if (self.secondsLeft  < 10) { var t = "0:0" + self.secondsLeft; } 
+		else                             { var t = "0:"  + self.secondsLeft; }
         elem_score.innerHTML = self.score.toFixed(0);
         elem_time_left.innerHTML = t;
         self.cameraFollowsPlayer(scene, self.getPlayer(scene).position.position);
