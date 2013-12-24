@@ -3,126 +3,41 @@ var GlVertices = function(gl, texture) {
     var self = this;
     self.gl = gl;
     self.texture = texture;
+
     self.baseCube = [
-      // Front face
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
+      -1.0, -1.0,  1.0,    1.0, -1.0,  1.0,    1.0,  1.0,  1.0,   -1.0,  1.0,  1.0,  // front
+      -1.0, -1.0, -1.0,   -1.0,  1.0, -1.0,    1.0,  1.0, -1.0,    1.0, -1.0, -1.0,  // back
+      -1.0,  1.0, -1.0,   -1.0,  1.0,  1.0,    1.0,  1.0,  1.0,    1.0,  1.0, -1.0,  // top
+      -1.0, -1.0, -1.0,    1.0, -1.0, -1.0,    1.0, -1.0,  1.0,   -1.0, -1.0,  1.0,  // bottom
+       1.0, -1.0, -1.0,    1.0,  1.0, -1.0,    1.0,  1.0,  1.0,    1.0, -1.0,  1.0,  // right
+      -1.0, -1.0, -1.0,   -1.0, -1.0,  1.0,   -1.0,  1.0,  1.0,   -1.0,  1.0, -1.0   // left
+    ];
 
-      // Back face
-      -1.0, -1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0, -1.0, -1.0,
-
-      // Top face
-      -1.0,  1.0, -1.0,
-      -1.0,  1.0,  1.0,
-       1.0,  1.0,  1.0,
-       1.0,  1.0, -1.0,
-
-      // Bottom face
-      -1.0, -1.0, -1.0,
-       1.0, -1.0, -1.0,
-       1.0, -1.0,  1.0,
-      -1.0, -1.0,  1.0,
-
-      // Right face
-       1.0, -1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0,  1.0,  1.0,
-       1.0, -1.0,  1.0,
-
-      // Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      -1.0,  1.0, -1.0
-    ]; // 6 * 4 * 3 = 72 
     self.baseCubeIndeces = [
-      0, 1, 2,      0, 2, 3,    // Front face
-      4, 5, 6,      4, 6, 7,    // Back face
-      8, 9, 10,     8, 10, 11,  // Top face
-      12, 13, 14,   12, 14, 15, // Bottom face
-      16, 17, 18,   16, 18, 19, // Right face
-      20, 21, 22,   20, 22, 23  // Left face
+       0,  1,  2,    0,  2,  3,  // Front face
+       4,  5,  6,    4,  6,  7,  // Back face
+       8,  9, 10,    8, 10, 11,  // Top face
+      12, 13, 14,   12, 14, 15,  // Bottom face
+      16, 17, 18,   16, 18, 19,  // Right face
+      20, 21, 22,   20, 22, 23   // Left face
     ];
 
     self.baseCubeTextureCoords = [
-      // Front face
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-
-      // Back face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-
-      // Top face
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-
-      // Bottom face
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 0.0,
-
-      // Right face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-
-      // Left face
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0
+      0.0, 0.0,   1.0, 0.0,   1.0, 1.0,   0.0, 1.0, // front
+      1.0, 0.0,   1.0, 1.0,   0.0, 1.0,   0.0, 0.0, // back
+      0.0, 1.0,   0.0, 0.0,   1.0, 0.0,   1.0, 1.0, // top
+      1.0, 1.0,   0.0, 1.0,   0.0, 0.0,   1.0, 0.0, // bottom
+      1.0, 0.0,   1.0, 1.0,   0.0, 1.0,   0.0, 0.0, // right
+      0.0, 0.0,   1.0, 0.0,   1.0, 1.0,   0.0, 1.0  // left
     ];
     
     self.baseVertexNormals = [
-      // Front face
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-
-      // Back face
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-
-      // Top face
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-
-      // Bottom face
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-
-      // Right face
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-
-      // Left face
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
+       0.0,  0.0,  1.0,    0.0,  0.0,  1.0,    0.0,  0.0,  1.0,    0.0,  0.0,  1.0,   // front 
+       0.0,  0.0, -1.0,    0.0,  0.0, -1.0,    0.0,  0.0, -1.0,    0.0,  0.0, -1.0,   // back 
+       0.0,  1.0,  0.0,    0.0,  1.0,  0.0,    0.0,  1.0,  0.0,    0.0,  1.0,  0.0,   // top 
+       0.0, -1.0,  0.0,    0.0, -1.0,  0.0,    0.0, -1.0,  0.0,    0.0, -1.0,  0.0,   // bottom 
+       1.0,  0.0,  0.0,    1.0,  0.0,  0.0,    1.0,  0.0,  0.0,    1.0,  0.0,  0.0,   // right 
+      -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   -1.0,  0.0,  0.0,   // left 
     ];
 
     self.setVertices = function(vertices, indeces, textureCoords, normals) {
@@ -143,15 +58,10 @@ var GlVertices = function(gl, texture) {
         return buf;
     }
 
-    self.assignToShaderVariable = function(attr, buf, item_size) {
-        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, buf);
-        self.gl.vertexAttribPointer(attr, item_size, self.gl.FLOAT, false, 0, 0);
-    }
-
     self.draw = function(shader, ambientColor, lightingDirection, directionalColor) {
-        self.assignToShaderVariable(shader.aVertexPosition, self.positionBuffer, 3);
-        self.assignToShaderVariable(shader.aTextureCoord, self.vertexTextureCoordsBuffer, 2); 
-        self.assignToShaderVariable(shader.aVertexNormal, self.vertexNormalBuffer, 3); 
+        shader.assignToShaderVariable(gl, "aVertexPosition", self.positionBuffer, 3);
+        shader.assignToShaderVariable(gl, "aTextureCoord", self.vertexTextureCoordsBuffer, 2); 
+        shader.assignToShaderVariable(gl, "aVertexNormal", self.vertexNormalBuffer, 3); 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, self.texture.texture);
         gl.uniform1i(shader.uSampler, 0);

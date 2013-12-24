@@ -360,6 +360,10 @@ var GlShader = function(gl) {
         gl.attachShader(self.program, shader);
         return shader;
     }
+    self.assignToShaderVariable = function(gl, attr, buf, item_size) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.vertexAttribPointer(self[attr], item_size, gl.FLOAT, false, 0, 0);
+    }
     return self;
 }
 test("I can map a shader variable", function() {
@@ -402,4 +406,64 @@ test("I can map uniform locations", function() {
     deepEqual(mapped, ["uPMatrix", "uNMatrix"]);
     deepEqual(shader.uPMatrix, "uPMatrix");
     deepEqual(shader.uNMatrix, "uNMatrix");
+});
+var ModelViewMatrixManager = function() {
+
+    var self = this;
+    var mvMatrix = mat4.create();
+    var mvMatrixStack = [];
+
+    self.push = function() {
+        mvMatrixStack.push(mvMatrix);
+		mvMatrix = self.getMatrixCopy()
+    }
+
+    self.pop = function() {
+        if (mvMatrixStack.length == 0) { throw "Invalid popMatrix!"; }
+        mvMatrix = mvMatrixStack.pop();
+    }
+
+	self.getMatrixCopy = function()  { 
+		var copy = mat4.create();
+		mat4.set(mvMatrix, copy);
+		return copy; 
+	}
+    self.translate        = function(p) { mat4.translate(mvMatrix, p); }
+    self.resetPerspective = function()  { mat4.identity(mvMatrix); }
+
+    self.setMatrixUniforms = function(gl, program) {
+        gl.uniformMatrix4fv(program.uMVMatrix, false, mvMatrix);
+        var normalMatrix = mat3.create();
+        mat4.toInverseMat3(mvMatrix, normalMatrix);
+        mat3.transpose(normalMatrix);
+        gl.uniformMatrix3fv(program.uNMatrix, false, normalMatrix);
+    }
+    return self;
+}
+test("I can translate the mvMatrix", function() {
+
+	var mm = new ModelViewMatrixManager();
+	mm.resetPerspective();
+	var m1 = mm.getMatrixCopy();
+	mm.translate([0.0, 1.0, 0.0]);
+	notDeepEqual(m1, mm.getMatrixCopy());
+});
+
+
+test("I can push and pop a mvMatrix on the stack", function() {
+
+	var mm = new ModelViewMatrixManager();
+	mm.resetPerspective();
+	var m1 = mm.getMatrixCopy();
+
+	mm.push();
+	deepEqual(m1, mm.getMatrixCopy());
+
+
+	mm.translate([0.0, 1.0, 0.0]);
+	notDeepEqual(m1, mm.getMatrixCopy());
+
+	mm.pop();
+	deepEqual(m1, mm.getMatrixCopy());
+	
 });

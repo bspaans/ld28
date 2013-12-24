@@ -30,6 +30,7 @@ test:
 	cat src/Camera.js tests/Camera.js >> tests/tests.js
 	cat src/SceneLoader.js tests/SceneLoader.js >> tests/tests.js
 	cat src/GlShader.js tests/GlShader.js >> tests/tests.js
+	cat src/ModelViewMatrixManager.js tests/ModelViewMatrixManager.js >> tests/tests.js
 
 
 clean:

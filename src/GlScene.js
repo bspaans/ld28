@@ -1,12 +1,11 @@
-require(["GlMatrixManager"])
-require(["Camera"]);
+require(["ModelViewMatrixManager", "Camera"])
 
 var GlScene = function(gl, shader) {
 
     var self = this;
     
     self.gl = gl;
-    self.mm = new GlMatrixManager();
+    self.mm = new ModelViewMatrixManager();
     self.shader = shader;
     self.camera = new Camera();
     self.cameraStartPosition = undefined;
@@ -50,9 +49,9 @@ var GlScene = function(gl, shader) {
         for (var i in self.shapes) {
             var shape = self.shapes[i];
             var entity = self.namedEntities[s.name];
-            self.mm.mvPushMatrix();
+            self.mm.push();
             self.drawDynamicShape(shape, entityRef, drawDynamicShapeCb);
-            self.mm.mvPopMatrix();
+            self.mm.pop();
         }
     }
 

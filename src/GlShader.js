@@ -37,5 +37,9 @@ var GlShader = function(gl) {
         gl.attachShader(self.program, shader);
         return shader;
     }
+    self.assignToShaderVariable = function(gl, attr, buf, item_size) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.vertexAttribPointer(self[attr], item_size, gl.FLOAT, false, 0, 0);
+    }
     return self;
 }
