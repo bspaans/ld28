@@ -18,6 +18,10 @@ var Camera = function() {
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, self.matrix);
     }
 
+    self.getX = function() {
+        return -self.position[0];
+    }
+
     self.moveX = function(d) {
         self.position[0] += -d;
     }
