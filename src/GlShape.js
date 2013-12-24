@@ -39,8 +39,8 @@ var GlShape = function(gl) {
     }
 
     self.assignPositionAndColorToShaderAttributes = function(shader) {
-        self.assignBufferToShaderProgramAttribute(shader.vertexPositionAttribute, self.positionBuffer, 3); 
-        self.assignBufferToShaderProgramAttribute(shader.vertexColor, self.colorBuffer, 4); 
+        self.assignBufferToShaderProgramAttribute(shader.aVertexPosition, self.positionBuffer, 3); 
+        //self.assignBufferToShaderProgramAttribute(shader.aVertexColor, self.colorBuffer, 4); 
     }
 
     self.draw = function(shader) {

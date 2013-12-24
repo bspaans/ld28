@@ -18,12 +18,12 @@ var GlMatrixManager = function(mvMatrix) {
     }
 
     self.setMatrixUniforms = function(gl, program) {
-        gl.uniformMatrix4fv(program.mvMatrixUniform, false, self.mvMatrix);
+        gl.uniformMatrix4fv(program.uMVMatrix, false, self.mvMatrix);
 
         var normalMatrix = mat3.create();
         mat4.toInverseMat3(self.mvMatrix, normalMatrix);
         mat3.transpose(normalMatrix);
-        gl.uniformMatrix3fv(program.nMatrixUniform, false, normalMatrix);
+        gl.uniformMatrix3fv(program.uNMatrix, false, normalMatrix);
     }
     self.translate = function(p) {
         mat4.translate(self.mvMatrix, p);

@@ -136,15 +136,15 @@ var GlVertices = function(gl, texture) {
     }
 
     self.draw = function(shader, ambientColor, lightingDirection, directionalColor) {
-        self.assignBufferToShaderProgramAttribute(shader.vertexPositionAttribute, self.positionBuffer, 3);
-        self.assignBufferToShaderProgramAttribute(shader.textureCoordAttribute, self.vertexTextureCoordsBuffer, 2); 
-        self.assignBufferToShaderProgramAttribute(shader.vertexNormalAttribute, self.vertexNormalBuffer, 3); 
+        self.assignBufferToShaderProgramAttribute(shader.aVertexPosition, self.positionBuffer, 3);
+        self.assignBufferToShaderProgramAttribute(shader.aTextureCoord, self.vertexTextureCoordsBuffer, 2); 
+        self.assignBufferToShaderProgramAttribute(shader.aVertexNormal, self.vertexNormalBuffer, 3); 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, self.texture.texture);
-        gl.uniform1i(shader.samplerUniform, 0);
-        gl.uniform3fv(shader.ambientColorUniform, ambientColor);
-        gl.uniform3fv(shader.lightingDirectionUniform, lightingDirection);
-        gl.uniform3fv(shader.directionalColorUniform, directionalColor);
+        gl.uniform1i(shader.uSampler, 0);
+        gl.uniform3fv(shader.uAmbientColor, ambientColor);
+        gl.uniform3fv(shader.uLightingDirection, lightingDirection);
+        gl.uniform3fv(shader.uDirectionalColor, directionalColor);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, self.vertexIndexBuffer);
         self.gl.drawElements(self.gl.TRIANGLES, self.numberOfPositionVertices / 2, self.gl.UNSIGNED_SHORT, 0);

@@ -17,7 +17,7 @@ var Camera = function() {
     self.setGlPerspective = function(gl, shaderProgram) {
         var viewportRatio = gl.viewportWidth / gl.viewportHeight;
         var m = self.perspectiveMatrix(viewportRatio);
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, m);
+        gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, m);
     }
 
     self.getX  = function()  { return -self.position[0]; } 
@@ -74,9 +74,10 @@ var SceneLoader = function() {
 
     var self = this;
     var sceneHasLoaded = false;
+	self.texturesLoaded = false;
 
     self.getSceneIfReady = function() {
-        if (sceneHasLoaded !== false && sceneHasLoaded.texturesLoaded) { 
+        if (sceneHasLoaded !== false && self.texturesLoaded) { 
 			return sceneHasLoaded;
         }
     }
@@ -88,7 +89,7 @@ var SceneLoader = function() {
         if (!sceneHasLoaded) {
             return "loading scene";
         }
-        if (!sceneHasLoaded.texturesLoaded) {
+        if (!self.texturesLoaded) {
             return 'loading textures';
         }
     }
@@ -148,7 +149,6 @@ var SceneLoader = function() {
         var shape = new GlVertices(gl, glTexture);
 		self.calculateCubeVertices(shape, cubes, json);
 
-		shape.name      = cubeName;
 		shape.json      = cubes;
 		shape.positions = a.cubePositions;
 		return shape;
@@ -162,7 +162,7 @@ var SceneLoader = function() {
 
         var shader  = new GlShader(gl, vertexShader, fragmentShader);
         var scene   = new GlScene(gl, shader);
-        var texture = new GlTexture(gl, textureLocation, scene);
+        var texture = new GlTexture(gl, textureLocation, self);
 
 		self.setCubesFromJSON(scene, json, gl, texture);
 		self.setLightingFromJSON(scene, json);
@@ -175,7 +175,7 @@ var SceneLoader = function() {
 		for (var cubeName in json.cubes) {
 			console.log("Loading cubes: " + cubeName);
 			var cubes = self.cubesFromJSONList(json, cubeName, gl, texture);
-			scene.addShape(cubes, cubeName, json.cubes[cubeName]);
+			scene.addShape(cubes, cubeName);
 		}
 	}
 
@@ -306,4 +306,117 @@ test("I can concatenate cube definitions", function() {
 		deepEqual(result.shaderPrograms, [2,3]);
 		deepEqual(result.positions, [0.0,1.0,2.0,1.0,2.0,4.0]);
 		deepEqual(result.normals, [7, 7]);
+});
+var GlShader = function(gl, fragmentShader, vertexShader) {
+
+    var self = this;
+
+    self.mapShaderVariable = function(variable) {
+        var a = gl.getAttribLocation(self.program, variable);
+        if (a !== -1) {
+            gl.enableVertexAttribArray(a);
+            console.log("Enabled " + variable);
+            self[variable] = a;
+            return;
+        }
+        console.log("Disabled " + variable);
+    }
+
+    self.mapShaderVariabels = function(variables) {
+        variables.map(self.mapShaderVariable);
+    }
+    self.mapUniformLocations = function(locations) {
+        locations.map(function(v) { 
+            self[v] = gl.getUniformLocation(self.program, v);
+        });
+    }
+
+    self.initShaders = function(fragmentShader, vertexShader) {
+
+        self.program = gl.createProgram();
+        self.addShader(gl, fragmentShader, gl.FRAGMENT_SHADER);
+        self.addShader(gl, vertexShader, gl.VERTEX_SHADER);
+        gl.linkProgram(self.program);
+
+        if (!gl.getProgramParameter(self.program, gl.LINK_STATUS)) {
+            console.log("Could not initialise shaders");
+        }
+
+        gl.useProgram(self.program);
+
+        self.mapShaderVariables(["aVertexNormal", "aVertexPosition", "aVertexColor", "aTextureCoord"]);
+        self.mapUniformLocations(["uPMatrix", "uMVMatrix", "uNMatrix", "uSampler", "uAmbientColor", "uLightingDirection", "uDirectionalColor"])
+        return self.program;
+    }
+
+    self.readTextFromScriptAttribute = function(elem) {
+        var str = "";
+        var k = elem.firstChild;
+        while (k) {
+            if (k.nodeType == 3) { str += k.textContent; }
+            k = k.nextSibling;
+        }
+        return str;
+    }
+
+    self.compileAndAttachShader = function(gl, shaderType, shaderScript) {
+        var shader = gl.createShader(shaderType);
+        gl.shaderSource(shader, shaderScript);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.log(gl.getShaderInfoLog(shader));
+            return null;
+        }
+        gl.attachShader(self.program, shader);
+        return shader;
+    }
+
+    self.addShader = function(gl, id, type) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) { return null; }
+        var str = self.readTextFromScriptAttribute(shaderScript);
+        return self.compileAndAttachShader(gl, type, str);
+    }
+
+    if (fragmentShader && vertexShader) {
+        self.initShaders(fragmentShader, vertexShader);
+    }
+    return self;
+}
+test("I can map a shader variable", function() {
+
+    var enabled = null;
+    var gl = { 
+        "getAttribLocation": function(p, variable) { return variable; },
+        "enableVertexAttribArray": function(a) { enabled = a; }
+    };
+    var shader = new GlShader(gl);
+
+    shader.mapShaderVariable("test");
+    deepEqual(enabled, "test");
+});
+
+test("I can map shader variables", function() {
+
+    var shader = new GlShader();
+    var variables = []; 
+
+    shader.mapShaderVariable = function(v) { variables.push(v); }
+    shader.mapShaderVariabels(["a", "b"]);
+    deepEqual(variables, ["a", "b"]);
+
+});
+
+test("I can map uniform locations", function() {
+
+    var mapped = [];
+    var gl = { "getUniformLocation": function(p, v) { mapped.push(v); return v}}
+    var shader = new GlShader(gl);
+
+    var map = ["uPMatrix", "uNMatrix"];
+    shader.mapUniformLocations(map);
+
+    deepEqual(mapped, ["uPMatrix", "uNMatrix"]);
+    deepEqual(shader.uPMatrix, "uPMatrix");
+    deepEqual(shader.uNMatrix, "uNMatrix");
 });

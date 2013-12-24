@@ -16,7 +16,7 @@ var Camera = function() {
     self.setGlPerspective = function(gl, shaderProgram) {
         var viewportRatio = gl.viewportWidth / gl.viewportHeight;
         var m = self.perspectiveMatrix(viewportRatio);
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, m);
+        gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, m);
     }
 
     self.getX  = function()  { return -self.position[0]; } 
