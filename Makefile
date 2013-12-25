@@ -44,7 +44,8 @@ scene: target
 	rm target/cubeCompiler.js
 
 release: dirty scene
-	/bin/echo -e -n "var precompiledScenes = {};\nprecompiledScenes[\"resources/scene.json\"] = " | cat - target/scene.compiled.json target/engine.js > target/${PROJECT}.${RELEASE}.js
+	/bin/echo -e -n "var precompiledScenes = {};\nprecompiledScenes[\"resources/scene.json\"] = " | \
+		cat - target/scene.compiled.json target/engine.js > target/${PROJECT}.${RELEASE}.js
 
 clean:
 	rmdir target

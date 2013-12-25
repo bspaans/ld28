@@ -22,7 +22,7 @@ result = {}
 while line != "":
     obj = parseLine(line)
     name = obj["name"]
-    d = {}
+    d = {"compiled": True}
     if name in result:
         d = result[name]
     d[obj["attr"]] = obj["values"];
@@ -30,6 +30,5 @@ while line != "":
     line = sys.stdin.readline()
 
 compiled = readJson(sys.argv[1])
-del compiled["cubes"];
-compiled["compiledCubes"] = result;
+compiled["cubes"] = result;
 print json.dumps(compiled, indent = 1)
