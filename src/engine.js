@@ -1,5 +1,5 @@
 
-require(["Engine", "GlShader", "GlScene", "GlTexture", "GlVertices"]);
+require(["Engine", "GlScene", "GlTexture", "GlVertices"]);
 
 var Position = function(pos) {
     var self = this;

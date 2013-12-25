@@ -1,4 +1,4 @@
-require(["CubeBuilder"]);
+require(["CubeBuilder", "GlShader"]);
 var SceneLoader = function() {
     var self = this;
     var loadedScene = undefined;
