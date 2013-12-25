@@ -1,6 +1,8 @@
 
 JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 JAVA=${JAVA_HOME}/bin/java
+PROJECT="one_minute_man"
+RELEASE=1.0.0
 
 default: build
 
@@ -15,7 +17,9 @@ quick: target
 	sed '/^\(require\|define\)(.*);\?\s*$$/d' target/engine.quick.js > target/engine.js
 
 dirty: target
-	cat src/Engine.js src/SceneLoader.js src/GlShader.js src/GlMatrixManager.js src/Camera.js src/GlScene.js src/GlTexture.js src/GlVertices.js src/engine.js > target/engine.dirty.js
+	cat src/Engine.js src/SceneLoader.js src/GlShader.js src/Timer.js src/CubeBuilder.js \
+		src/ModelViewMatrixManager.js src/Camera.js src/GlScene.js src/GlTexture.js \
+		src/GlVertices.js src/engine.js > target/engine.dirty.js
 	sed '/^\(require\|define\)(.*);\?\s*$$/d' target/engine.dirty.js > target/engine.js
 
 tilemap:
@@ -34,6 +38,13 @@ test:
 	cat src/CubeBuilder.js tests/CubeBuilder.js >> tests/tests.js
 	sed -i '/^\(require\|define\)(.*);\?\s*$$/d' tests/tests.js
 
+scene: target
+	cat src/CubeBuilder.js src/cubeCompiler.js > target/cubeCompiler.js
+	cat resources/scene.json | rhino target/cubeCompiler.js | python compileScene.py resources/scene.json > target/scene.compiled.json
+	rm target/cubeCompiler.js
+
+release: dirty scene
+	/bin/echo -e -n "var precompiledScenes = {};\nprecompiledScenes[\"resources/scene.json\"] = " | cat - target/scene.compiled.json target/engine.js > target/${PROJECT}.${RELEASE}.js
 
 clean:
 	rmdir target
