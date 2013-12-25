@@ -85,7 +85,5 @@ var SceneLoader = function() {
 	self.setCameraFromJSON = function(scene, json) {
         scene.setCameraPosition(json.camera);
 	}
-
-
     return self;
 }

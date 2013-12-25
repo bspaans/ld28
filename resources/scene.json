@@ -3,8 +3,8 @@
     "texturesPerRow": 2,
     "texturesPerColumn": 2,
 	"shader": {
-		"fragment": "texture-shader-fs",
-		"vertex": "texture-shader-vs",
+		"fragment": "texture.fs.shader",
+		"vertex": "texture.vs.shader",
 		"variables": ["aVertexNormal", "aVertexPosition", "aTextureCoord"],
 		"uniformLocations": ["uPMatrix", "uMVMatrix", "uNMatrix", 
 						     "uSampler", "uAmbientColor", 

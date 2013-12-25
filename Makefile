@@ -21,6 +21,7 @@ dirty: target
 		src/ModelViewMatrixManager.js src/Camera.js src/GlScene.js src/GlTexture.js \
 		src/GlVertices.js src/engine.js > target/engine.dirty.js
 	sed '/^\(require\|define\)(.*);\?\s*$$/d' target/engine.dirty.js > target/engine.js
+	python compileSite.py resources/index.template.html > index.html
 
 tilemap:
 	montage -geometry +0+0 resources/1.gif resources/2.gif resources/tiles_1.gif
