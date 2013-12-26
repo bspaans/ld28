@@ -44,6 +44,7 @@ var CubeBuilder = function() {
 		result.vertices = getPositions(basePositions, a.positions);
 		result.indeces  = getIndices(baseIndices, cubes.length, 24);
 		result.normals  = a.normals;
+        result.cubePositions = a.cubePositions;
 		return result;
 	}
 

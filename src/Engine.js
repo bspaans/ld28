@@ -26,8 +26,13 @@ var Engine = function() {
     }
 
     self.loadScene = function(resource) {
-        if (precompiledScenes && precompiledScenes[resource]) {
-            return self.sceneLoader.buildSceneFromJSON(self.gl, precompiledScenes[resource]);
+        try {
+            if (precompiledScenes && precompiledScenes[resource]) {
+                return self.sceneLoader.buildSceneFromJSON(self.gl, precompiledScenes[resource]);
+            }
+        } catch (e) {
+            console.log("Could not use precompiled resource");
+            console.log(e);
         }
         $.getJSON(resource, function(json) {
             self.sceneLoader.buildSceneFromJSON(self.gl, json);

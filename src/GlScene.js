@@ -1,27 +1,20 @@
-require(["ModelViewMatrixManager", "Camera"])
+require(["ModelViewMatrixManager", "Camera", "Lighting"])
 
 var GlScene = function(gl, shader) {
-
     var self = this;
     
     self.gl = gl;
     self.mm = new ModelViewMatrixManager();
     self.shader = shader;
-    self.camera = new Camera();
+    self.camera = new Camera(gl.viewportWidth, gl.viewportHeight);
     self.cameraStartPosition = undefined;
 
     self.namedEntities = {}
     self.shapes        = [];
 
-    var ambientColor      = undefined;
-    var lightingDirection = undefined;
-    var directionalColor  = undefined;
-
-    self.setAmbientLighting     = function(a) { ambientColor = a; }
-    self.setDirectionalLighting = function(dir, col) {
-        lightingDirection = dir;
-        directionalColor  = col;
-    }
+    var lighting = new Lighting();
+    self.setAmbientLighting     = lighting.setAmbientLighting;
+    self.setDirectionalLighting = lighting.setDirectionalLighting;
 
     self.setCameraPosition = function(pos) {
         self.camera.position     = pos;
@@ -38,29 +31,26 @@ var GlScene = function(gl, shader) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
-        self.camera.setGlPerspective(self.gl, self.shader);
+        self.camera.setGlPerspective(self.shader);
         self.drawShapes(interpolation, drawDynamicShapeCallback);
     }
 
     self.drawShapes = function(interpolation, drawDynamicShapeCb) {
         for (var i in self.shapes) {
-            var shape = self.shapes[i];
-            var entity = self.namedEntities[s.name];
             self.mm.push();
-            self.drawDynamicShape(shape, entityRef, drawDynamicShapeCb);
+            self.drawDynamicShape(self.shapes[i], drawDynamicShapeCb);
             self.mm.pop();
         }
     }
 
     self.drawDynamicShape = function(shape, entityRef, cb) {
         if (!cb) { return self.drawShape(shape); }
-        cb(self, shape.name, shape, entityRef); 
+        cb(self, shape.name, shape, self.namedEntities[shape.name]); 
     }
 
     self.drawShape = function(shape) {
-        self.mm.setMatrixUniforms(self.gl, self.shader); 
-        shape.draw(self.shader, ambientColor, 
-            lightingDirection, directionalColor);
+        self.mm.setMatrixUniforms(self.shader); 
+        shape.draw(self.shader, lighting);
     }
 
     return self;

@@ -309,5 +309,4 @@ var MyGame = function() {
 
 function webGLStart() {
     new MyGame().start();
-
 }

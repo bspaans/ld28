@@ -17,12 +17,12 @@ var ModelViewMatrixManager = function() {
     self.translate        = function(p) { mat4.translate(mvMatrix, p); }
     self.resetPerspective = function()  { mat4.identity(mvMatrix); }
 
-    self.setMatrixUniforms = function(gl, program) {
-        gl.uniformMatrix4fv(program.uMVMatrix, false, mvMatrix);
+    self.setMatrixUniforms = function(shader) {
         var normalMatrix = mat3.create();
         mat4.toInverseMat3(mvMatrix, normalMatrix);
         mat3.transpose(normalMatrix);
-        gl.uniformMatrix3fv(program.uNMatrix, false, normalMatrix);
+        shader.assignToUniformMatrix4fv("uMVMatrix", mvMatrix);
+        shader.assignToUniformMatrix3fv("uNMatrix", normalMatrix);
     }
     return self;
 }

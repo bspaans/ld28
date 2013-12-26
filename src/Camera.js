@@ -1,22 +1,17 @@
-var Camera = function() {
-    var self     = this;
-    var fov      = 45; 
-    var tooFar   = 100; 
-    var tooClose = 0.1; 
+var Camera = function(viewportW, viewportH) {
+    var self          = this;
+    var fov           = 45;
+    var viewportRatio = viewportW / viewportH;
+    var tooFar        = 100;
+    var tooClose      = 0.1;
 
     var matrix    = mat4.create();
     self.position = vec3.create();
 
-    self.perspectiveMatrix = function(viewportRatio) {
+    self.setGlPerspective = function(shader) {
         mat4.perspective(fov, viewportRatio, tooClose, tooFar, matrix);
         mat4.translate(matrix, self.position);
-        return matrix;
-    }
-
-    self.setGlPerspective = function(gl, shaderProgram) {
-        var viewportRatio = gl.viewportWidth / gl.viewportHeight;
-        var m = self.perspectiveMatrix(viewportRatio);
-        gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, m);
+        shader.assignToUniformMatrix4fv("uPMatrix", matrix);
     }
 
     self.getX  = function()  { return -self.position[0]; } 

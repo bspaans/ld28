@@ -17,7 +17,6 @@ test("I can push and pop a mvMatrix on the stack", function() {
 	mm.push();
 	deepEqual(m1, mm.getMatrixCopy());
 
-
 	mm.translate([0.0, 1.0, 0.0]);
 	notDeepEqual(m1, mm.getMatrixCopy());
 

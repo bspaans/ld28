@@ -22,16 +22,14 @@ var GlVertices = function(gl, texture) {
         return buf;
     }
 
-    self.draw = function(shader, ambientColor, lightingDirection, directionalColor) {
-        shader.assignToShaderVariable(gl, "aVertexPosition", self.positionBuffer, 3);
-        shader.assignToShaderVariable(gl, "aTextureCoord", self.vertexTextureCoordsBuffer, 2); 
-        shader.assignToShaderVariable(gl, "aVertexNormal", self.vertexNormalBuffer, 3); 
+    self.draw = function(shader, lighting) {
+        shader.assignToShaderVariable("aVertexPosition", self.positionBuffer, 3);
+        shader.assignToShaderVariable("aTextureCoord", self.vertexTextureCoordsBuffer, 2); 
+        shader.assignToShaderVariable("aVertexNormal", self.vertexNormalBuffer, 3); 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, self.texture.texture);
         gl.uniform1i(shader.uSampler, 0);
-        gl.uniform3fv(shader.uAmbientColor, ambientColor);
-        gl.uniform3fv(shader.uLightingDirection, lightingDirection);
-        gl.uniform3fv(shader.uDirectionalColor, directionalColor);
+        lighting.attachToShader(shader);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, self.vertexIndexBuffer);
         self.gl.drawElements(self.gl.TRIANGLES, self.numberOfPositionVertices / 2, self.gl.UNSIGNED_SHORT, 0);

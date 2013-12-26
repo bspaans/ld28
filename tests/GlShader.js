@@ -29,7 +29,8 @@ test("I can't map a shader variable that doesn't exist", function() {
 test("I can map uniform locations", function() {
 
     var mapped = [];
-    var gl = { "getUniformLocation": function(p, v) { mapped.push(v); return v}}
+    var gl = { "getUniformLocation": function(p, v) { 
+        mapped.push(v); return v}}
     var shader = new GlShader(gl);
 
     var map = ["uPMatrix", "uNMatrix"];
