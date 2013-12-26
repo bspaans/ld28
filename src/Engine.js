@@ -7,7 +7,7 @@ var Engine = function() {
     var MAX_FRAMESKIP = 5;
     self.pressed = {};
     self.scene = undefined;
-    self.sceneLoader = new SceneLoader(self);
+    self.sceneLoader = new SceneLoader();
 
     self.initGLOnCanvasElement = function(canvasElement) {
         try { self.gl = canvasElement.getContext("experimental-webgl"); } 
@@ -26,16 +26,17 @@ var Engine = function() {
     }
 
     self.loadScene = function(resource) {
+        self.sceneLoader.setFactory(new GlFactory(self.gl));
         try {
             if (precompiledScenes && precompiledScenes[resource]) {
-                return self.sceneLoader.buildSceneFromJSON(self.gl, precompiledScenes[resource]);
+                return self.sceneLoader.buildSceneFromJSON(precompiledScenes[resource]);
             }
         } catch (e) {
             console.log("Could not use precompiled resource");
             console.log(e);
         }
         $.getJSON(resource, function(json) {
-            self.sceneLoader.buildSceneFromJSON(self.gl, json);
+            self.sceneLoader.buildSceneFromJSON(json);
         })
     }
 

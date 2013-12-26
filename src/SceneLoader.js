@@ -4,6 +4,9 @@ var SceneLoader = function() {
     var loadedScene = undefined;
 	var cubeBuilder = new CubeBuilder();
 	self.texturesLoaded = false;
+    var factory = undefined;
+
+    self.setFactory = function(f) { factory = f; }
 
     self.getSceneIfReady = function() {
         return loadedScene && self.texturesLoaded ? loadedScene : undefined;
@@ -15,15 +18,15 @@ var SceneLoader = function() {
         if (!self.texturesLoaded)   { return 'loading textures'; } 
     }
 
-	var buildShape = function(a, gl, glTexture, cubes, tw, th) {
-        var shape = new GlVertices(gl, glTexture);
+	var buildShape = function(a, texture, cubes, tw, th) {
+        var shape = factory.makeVertices(texture);
         shape.setVertices(a.vertices, a.indeces, a.tCoords, a.normals);
 		shape.json = cubes;
 		shape.positions = a.cubePositions;
 		return shape;
 	}
 
-	self.cubesFromJSONList = function(json, cubeName, gl, glTexture) {
+	self.cubesFromJSONList = function(json, cubeName, texture) {
 		var cubes = json.cubes[cubeName];
         var tw = json.texturesPerRow, th = json.texturesPerColumn;
         if (cubes.compiled) {
@@ -32,11 +35,11 @@ var SceneLoader = function() {
             if (!(cubes instanceof Array)) { cubes = [cubes]; }
             var a = cubeBuilder.calculateCubeVertices(cubes, tw, th);
         }
-		return buildShape(a, gl, glTexture, cubes, tw, th);
+		return buildShape(a, texture, cubes, tw, th);
 	}
 
-	self.getShaderFromJSON = function(gl, json) {
-        var shader  = new GlShader(gl);
+	self.getShaderFromJSON = function(json) {
+        var shader  = factory.makeShader();
 		shader.initShaders(
 				self.readTextFromScriptAttribute(json.shader.fragment), 
 				self.readTextFromScriptAttribute(json.shader.vertex), 
@@ -44,12 +47,15 @@ var SceneLoader = function() {
 		return shader;
 	}
 
-    self.buildSceneFromJSON = function(gl, json) {
-		var shader  = self.getShaderFromJSON(gl, json);
-        var scene   = new GlScene(gl, shader);
-        var texture = new GlTexture(gl, json.texture, self);
+    self.buildSceneFromJSON = function(json) {
+        if (factory === undefined) {
+            throw "Factory is not set";
+        }
+		var shader  = self.getShaderFromJSON(json);
+        var scene   = factory.makeScene(shader);
+        var texture = factory.makeTexture(json.texture, self);
 
-		self.setCubesFromJSON(scene, json, gl, texture);
+		self.setCubesFromJSON(scene, json, texture);
 		self.setLightingFromJSON(scene, json);
 		self.setCameraFromJSON(scene, json);
         loadedScene = scene;
@@ -66,10 +72,10 @@ var SceneLoader = function() {
         return str;
     }
 
-	self.setCubesFromJSON = function(scene, json, gl, texture) {
+	self.setCubesFromJSON = function(scene, json, texture) {
 		for (var cubeName in json.cubes) {
 			console.log("Loading cubes: " + cubeName);
-			var cubes = self.cubesFromJSONList(json, cubeName, gl, texture);
+			var cubes = self.cubesFromJSONList(json, cubeName, texture);
 			scene.addShape(cubes, cubeName);
 		}
 	}

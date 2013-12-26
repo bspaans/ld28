@@ -43,7 +43,7 @@ var GlScene = function(gl, shader) {
         }
     }
 
-    self.drawDynamicShape = function(shape, entityRef, cb) {
+    self.drawDynamicShape = function(shape, cb) {
         if (!cb) { return self.drawShape(shape); }
         cb(self, shape.name, shape, self.namedEntities[shape.name]); 
     }
