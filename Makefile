@@ -38,9 +38,12 @@ test:
 	sed -i '/^\(require\|define\)(.*);\?\s*$$/d' tests/tests.js
 
 scene: target
-	cat src/CubeBuilder.js src/cubeCompiler.js > target/cubeCompiler.js
+	cat src/engine/CubeBuilder.js src/cubeCompiler.js > target/cubeCompiler.js
 	cat resources/scene.json | rhino target/cubeCompiler.js | python compileScene.py resources/scene.json > target/scene.compiled.json
 	rm target/cubeCompiler.js
+
+importDiagram:
+	./compileDot.sh | dot -Tpng -o target/imports.png
 
 release: dirty scene
 	/bin/echo -e -n "var precompiledScenes = {};\nprecompiledScenes[\"resources/scene.json\"] = " | \
