@@ -5,9 +5,11 @@ printDependencies() {
 }
 parseRequired() {
     sed \
-        -e 's/^require(\[\(.*\)"\]);\?\s*$/\1.js/' \
+        -e 's/^require(\[\(.*\)"\]);\?\s*$/\1/' \
+        -e 's/\./\//g' \
         -e 's/", /.js /g' \
-        -e 's/"/src\//g'  
+        -e 's/"/src\//g' \
+        -e 's/$/.js/g'
 }
 printRequired() {
     require=$(grep require "$1" | parseRequired)  

@@ -1,4 +1,4 @@
-require(["GlShader", "GlVertices", "GlTexture", "GlScene"]);
+require(["gl.GlShader", "gl.GlVertices", "gl.GlTexture", "gl.GlScene"]);
 var GlFactory = function(gl) {
 	var self = this;
 

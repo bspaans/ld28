@@ -1,4 +1,4 @@
-require(["Scene"]);
+require(["engine.Scene"]);
 var GlScene = function(gl, shader) {
     var self = new Scene(gl.viewportWidth, gl.viewportHeight);
     

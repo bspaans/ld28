@@ -1,4 +1,4 @@
-require(["ModelViewMatrixManager", "Lighting", "Camera"]);
+require(["engine.ModelViewMatrixManager", "engine.Lighting", "engine.Camera"]);
 var Scene = function(viewportW, viewportH) {
 	var self = this;
 

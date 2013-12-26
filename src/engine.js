@@ -1,5 +1,4 @@
-
-require(["Engine", "GlScene", "GlTexture", "GlVertices"]);
+require(["engine.Engine"]);
 
 var Position = function(pos) {
     var self = this;

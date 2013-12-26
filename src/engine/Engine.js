@@ -1,4 +1,4 @@
-require(["Timer", "SceneLoader", "GlFactory"]);
+require(["engine.Timer", "engine.SceneLoader", "gl.GlFactory"]);
 
 var Engine = function() {
 

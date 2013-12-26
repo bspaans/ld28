@@ -1,4 +1,4 @@
-require(["CubeBuilder", "GlShader", "GlVertices", "GlTexture", "GlScene"]);
+require(["engine.CubeBuilder"]);
 var SceneLoader = function() {
     var self = this;
     var loadedScene = undefined;
