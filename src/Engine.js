@@ -1,4 +1,4 @@
-require(["Timer", "SceneLoader"]);
+require(["Timer", "SceneLoader", "GlFactory"]);
 
 var Engine = function() {
 
@@ -10,23 +10,15 @@ var Engine = function() {
     self.sceneLoader = new SceneLoader();
 
     self.initGLOnCanvasElement = function(canvasElement) {
-        try { self.gl = canvasElement.getContext("experimental-webgl"); } 
-		catch (e) { console.log(e) }
-
-        if (!self.gl) { throw "WebGL Initialization error" }
-        self.gl.viewportWidth  = canvasElement.width;
-        self.gl.viewportHeight = canvasElement.height;
-        return self.gl;
+        self.factory = GlFactory.initGLOnCanvasElement(canvasElement);
     }
 
     self.initGLOnCanvas = function(canvasId) {
-        var canvas = document.getElementById(canvasId);
-        if (canvas == null) { throw "Can't find canvas with id " + canvasId; }
-        return self.initGLOnCanvasElement(canvas);
+        self.factory = GlFactory.initGLOnCanvas(canvas);
     }
 
     self.loadScene = function(resource) {
-        self.sceneLoader.setFactory(new GlFactory(self.gl));
+        self.sceneLoader.setFactory(self.factory);
         try {
             if (precompiledScenes && precompiledScenes[resource]) {
                 return self.sceneLoader.buildSceneFromJSON(precompiledScenes[resource]);
@@ -40,10 +32,8 @@ var Engine = function() {
         })
     }
 
-    self.firstTick = function() {
+    self.startTicks = function() {
         self.bindEvents();
-        self.gl.clearColor(1.0, 1.0, 1.0, 1.0);
-        self.gl.enable(gl.DEPTH_TEST);
         self.tick();
     }
 

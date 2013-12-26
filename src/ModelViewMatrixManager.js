@@ -1,5 +1,4 @@
 var ModelViewMatrixManager = function() {
-
     var self = this;
     var mvMatrix = mat4.create();
     var mvMatrixStack = [];

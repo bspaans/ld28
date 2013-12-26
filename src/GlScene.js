@@ -27,6 +27,11 @@ var GlScene = function(gl, shader) {
         self.namedEntities[name] = shape; 
     }
 
+    self.setClearColor = function(r, g, b, a) {
+        self.gl.clearColor(r, g, b, a);
+        self.gl.enable(gl.DEPTH_TEST);
+    }
+
     self.draw = function(interpolation, drawDynamicShapeCallback) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);

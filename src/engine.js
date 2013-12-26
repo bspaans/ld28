@@ -192,6 +192,8 @@ var MyGame = function() {
     self.finished    = false;
     self.secondsLeft = 60;
 
+    var scene_initialized = false;
+
     audiojs.events.ready(function() {
         var options = {};
         self.soundtrack = audiojs.newInstance(document.getElementById("soundtrack"), options);
@@ -201,19 +203,23 @@ var MyGame = function() {
 
     self.start = function() {
         try { 
-            gl = self.initGLOnCanvas("lesson01-canvas");
+            self.initGLOnCanvas("lesson01-canvas");
         } catch(e) {
             console.log(e);
             elem_status.innerHTML = "Could not load OpenGL";
             return;
         }
         self.loadScene("resources/scene.json");
-        self.firstTick();
+        self.startTicks();
     }
 
     self.preTick = function(scene) {
         elem_status.innerHTML = self.sceneLoader.getLoadStatus();
         if (!scene) return;
+        if (!scene_initialized) {
+            scene.clearColor(1.0, 1.0, 1.0, 1.0);
+            scene_initialized = true;
+        }
         if ((scene.finished || self.secondsLeft <= 0) && !self.pressed[32]) {
             elem_fps.innerHTML       = "";
             elem_status.innerHTML    = "Press space to play again";
