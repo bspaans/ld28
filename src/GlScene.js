@@ -1,5 +1,4 @@
 require(["Scene"]);
-
 var GlScene = function(gl, shader) {
     var self = new Scene(gl.viewportWidth, gl.viewportHeight);
     

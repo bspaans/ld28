@@ -1,5 +1,4 @@
 var GlShader = function(gl) {
-
     var self = this;
 
     self.mapShaderVariable = function(variable) {
