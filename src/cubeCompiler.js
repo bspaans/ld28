@@ -8,7 +8,6 @@ if (java.lang) {
     }
 	importPackage(java.io);
 	importPackage(java.lang);
-	importPackage(org.mozilla.javascript.NativeJSON);
 	var stdin = new BufferedReader(new InputStreamReader(System['in']) );
 	var lines = "";
 	var l = 0;
