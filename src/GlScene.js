@@ -1,62 +1,39 @@
-require(["ModelViewMatrixManager", "Camera", "Lighting"])
+require(["Scene"]);
 
 var GlScene = function(gl, shader) {
-    var self = this;
+    var self = new Scene(gl.viewportWidth, gl.viewportHeight);
     
     self.gl = gl;
-    self.mm = new ModelViewMatrixManager();
     self.shader = shader;
-    self.camera = new Camera(gl.viewportWidth, gl.viewportHeight);
-    self.cameraStartPosition = undefined;
-
-    self.namedEntities = {}
-    self.shapes        = [];
-
-    var lighting = new Lighting();
-    self.setAmbientLighting     = lighting.setAmbientLighting;
-    self.setDirectionalLighting = lighting.setDirectionalLighting;
-
-    self.setCameraPosition = function(pos) {
-        self.camera.position     = pos;
-        self.cameraStartPosition = pos.slice(0);
-    }
-
-    self.addShape = function(shape, name) {
-        shape.name = name;
-        self.shapes.push(shape);
-        self.namedEntities[name] = shape; 
-    }
 
     self.setClearColor = function(r, g, b, a) {
         self.gl.clearColor(r, g, b, a);
         self.gl.enable(gl.DEPTH_TEST);
     }
 
-    self.draw = function(interpolation, drawDynamicShapeCallback) {
+    self.draw = function(interpolation, drawShapeCb) {
         self.gl.viewport(0, 0, self.gl.viewportWidth, self.gl.viewportHeight);
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
         self.mm.resetPerspective();
         self.camera.setGlPerspective(self.shader);
-        self.drawShapes(interpolation, drawDynamicShapeCallback);
+        self.drawShapes(interpolation, drawShapeCb);
     }
 
-    self.drawShapes = function(interpolation, drawDynamicShapeCb) {
+    self.drawShapes = function(interpolation, drawShapeCb) {
         for (var i in self.shapes) {
             self.mm.push();
-            self.drawDynamicShape(self.shapes[i], drawDynamicShapeCb);
+            self.drawShape(self.shapes[i], drawShapeCb);
             self.mm.pop();
         }
     }
 
-    self.drawDynamicShape = function(shape, cb) {
-        if (!cb) { return self.drawShape(shape); }
-        cb(self, shape.name, shape, self.namedEntities[shape.name]); 
-    }
-
-    self.drawShape = function(shape) {
+    self.drawShape = function(shape, cb) {
+        if(cb) { return self.doDrawShapeCallback(shape, cb); }
         self.mm.setMatrixUniforms(self.shader); 
-        shape.draw(self.shader, lighting);
+        shape.draw(self.shader, self.lighting);
     }
-
+	self.doDrawShapeCallback = function(shabe, cb) {
+		return cb(self, shape.name, shape, self.namedEntities[shape.name]);
+	}
     return self;
 }
