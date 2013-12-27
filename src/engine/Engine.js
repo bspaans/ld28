@@ -8,7 +8,7 @@ var Engine = function() {
     self.pressed = {};
     self.scene = undefined;
     self.sceneLoader = new SceneLoader();
-    self.stateMachine = new StateMachine();
+    self.stateMachine = new StateMachine(self);
 
     self.initGLOnCanvasElement = function(canvasElement) {
         self.factory = GlFactory.initGLOnCanvasElement(canvasElement);
@@ -42,13 +42,13 @@ var Engine = function() {
         window.requestAnimationFrame(self.tick);
         self.engineTick();
     }
-    self.preTick = function(scene) { } 
-    self.postTick = function(scene) { }
+    self.addState = self.stateMachine.addState;
+    self.changeToState = self.stateMachine.changeToState;
+    self.getCurrentState = self.stateMachine.getCurrentState;
     self.engineTick = function() {
         var scene = self.sceneLoader.getSceneIfReady();
-        self.preTick(scene);
-        self.inputLoop(scene);
-        self.postTick(scene);
+        self.getCurrentState().tick(scene);
+        self.getCurrentState().inputTick(scene, elapsed);
         self.draw(scene);
     }
 
@@ -63,10 +63,17 @@ var Engine = function() {
         }
     }
 
-    self.drawDynamicShapeCallback = undefined;
+    self.drawShapeCallback = function(scene, name, shape, entityRef) {
+        var g = self.getCurrentState(); if (!g) return;
+        if (g.drawShapeCallback) {
+            g.drawShapeCallback(scene, name, shape, entityRef);
+        } else {
+            scene.drawShape(shape);
+        }
+    }
     self.draw = function(scene) {
         if (!scene) return;
-        scene.draw( -timer.getPlaceInFrame(), self.drawDynamicShapeCallback);
+        scene.draw( -timer.getPlaceInFrame(), self.drawShapeCallback);
     }
     
     self.onkeydown  = function(event) { self.pressed[event.keyCode] = true; }

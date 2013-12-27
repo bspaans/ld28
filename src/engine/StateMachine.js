@@ -1,5 +1,5 @@
 require(["engine.State"]);
-var StateMachine = function() {
+var StateMachine = function(engine) {
     var self = this;
     var states = {};
     var currentState = undefined;
@@ -8,14 +8,13 @@ var StateMachine = function() {
         states[name] = state; 
         state.name = name;
         state.setStateMachine(self);
+        state.setEngine(engine);
     }
-    var setCurrentState = function(name) { currentState = name; }
     self.getCurrentState = function() { return currentState; }
     self.changeToState = function(name, activateParams) {
         if (currentState) { currentState.deactivate(); }
-        setCurrentState(name);
+        currentState = states[name];
         currentState.activate(activateParams);
     }
-
     return self;
 }
