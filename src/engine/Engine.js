@@ -1,4 +1,4 @@
-require(["engine.Timer", "engine.SceneLoader", "gl.GlFactory"]);
+require(["engine.Timer", "engine.SceneLoader", "engine.StateMachine", "gl.GlFactory"]);
 
 var Engine = function() {
 
@@ -8,6 +8,7 @@ var Engine = function() {
     self.pressed = {};
     self.scene = undefined;
     self.sceneLoader = new SceneLoader();
+    self.stateMachine = new StateMachine();
 
     self.initGLOnCanvasElement = function(canvasElement) {
         self.factory = GlFactory.initGLOnCanvasElement(canvasElement);
