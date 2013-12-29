@@ -1,15 +1,15 @@
-require(["game.Position"]);
+require(["game.Position", "game.World"]);
 var Player = function(player) {
     var self = this;
     self.player = player;
     self.position = new Position(player.json[0].v);
     self.startPosition = self.position.position.slice();
-    self.speedX = 0.0;
-    self.speedY = 0.0;
-    self.topSpeedX = 0.6;
-    self.topSpeedY = 0.7;
-    self.jumping = false;
-    self.jumptick = 0;
+    var speedX = 0.0;
+    var speedY = 0.0;
+    var topSpeedX = 0.6;
+    var topSpeedY = 0.7;
+    var jumping = false;
+    var jumptick = 0;
     self.lastStandingPos = undefined;
 
     self.movingX = 0.0;
@@ -17,10 +17,10 @@ var Player = function(player) {
 
     self.resetPosition = function(pos) {
         self.position = new Position(pos.slice(0));
-        self.speedX = 0.0;
-        self.speedY = 0.0;
-        self.jumping = false;
-        self.jumptick = 0;
+        speedX = 0.0;
+        speedY = 0.0;
+        jumping = false;
+        jumptick = 0;
     }
 
     self.right = function() { self.movingX = 1; };
@@ -28,136 +28,65 @@ var Player = function(player) {
     self.up = function() { self.movingY = 1; };
 
     self.interpolateMove = function(pos, interpolation) {
-        var x = pos[0]+ self.speedX * interpolation 
-        var y = pos[1]+ self.speedY * interpolation 
+        var x = pos[0]+ speedX * interpolation 
+        var y = pos[1]+ speedY * interpolation 
         return [x,y,pos[2]];
     }
 
-    self.move = function(solids) {
+    self.move = function(world) {
+        world = new World(world);
         if (self.movingX == 1) {
-            self.moveRight(solids);
+            moveRight(world);
         } else if (self.movingX == -1) {
-            self.moveLeft(solids);
+            moveLeft(world);
         } else {
-            self.horizontalMomentum(solids);
+            horizontalMomentum(world);
         }
         if (self.movingY == 1) {
-            self.jump(solids);
+            jump(world);
         } else {
-            self.jumping = false;
+            jumping = false;
         }
-        self.gravity(solids);
+        gravity(world);
 
-        self.position.moveX(self.speedX)
-        self.position.moveY(self.speedY);
+        self.position.moveX(speedX)
+        self.position.moveY(speedY);
     }
 
-    self.isStanding = function(world) {
-        var x = self.position.position[0] - 1;
-        var y = self.position.position[1] - 1;
-        var w = 2;
-        var h = 2;
-        for (var s in world) {
-            var solid = world[s];
-            var sx = solid[0];
-            var sy = solid[1];
-            var sw = solid[2];
-            var sh = solid[3];
-            if (x > sx - w && x < sx + sw) {
-                if (y >= sy + 0.01 && y <= sy + sh + (1 / 8096)) {
-                    self.position.position[1] = sy + sh + 1;
-                    self.speedY = 0.0;
-                    self.lastStandingPos = [sx + 1, sy + sh + 5, 0.0];
-                    return true;
-                }
-            }
-        }
-        return false;
+    var isStanding = function(world, speed) {
+        return world.entityIsStanding(self, speed);
     }
 
-    self.willBeStanding = function(world) {
-        var x = self.position.position[0] - 1 + self.speedX;
-        var y = self.position.position[1] - 1 + self.speedY ;
-        var w = 2;
-        var h = 2;
-        for (var s in world) {
-            var solid = world[s];
-            var sx = solid[0];
-            var sy = solid[1];
-            var sw = solid[2];
-            var sh = solid[3];
-            if (x > sx - w && x < sx + sw) {
-                if (y >= sy + 0.01 && y <= sy + sh + (1 / 8096)) {
-                    self.position.position[1] = sy + sh + 1;
-                    self.speedY = 0.0;
-                    self.lastStandingPos = [sx + 1, sy + sh + 5, 0.0];
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    self.jump = function(world) {
-        self.jumping = (self.jumping || self.isStanding(world)) && self.jumptick < 7;
-        self.jumptick += 1;
-        if (self.jumping) {
-            self.speedY = self.topSpeedY; 
+    var jump = function(world) {
+        jumping = (jumping || isStanding(world)) && jumptick < 7;
+        jumptick += 1;
+        if (jumping) {
+            speedY = topSpeedY; 
         } 
     }
-    self.isFalling = function(world) {
-        return !self.jumping && !self.isStanding(world);
+    var moveHorizontally = function(world, speed) {
+        if (!speed) { speed = speedX;}
+        speedX = (!world.entityCanMoveHorizontally(self, speed)) ? 0.0 : speed;
     }
-    self.canMoveHorizontally = function(world) {
-        var x = self.position.position[0] - 1 + self.speedX;
-        var y = self.position.position[1] - 1;
-        var w = 2;
-        var h = 2;
-        for (var s in world) {
-            var solid = world[s];
-            var sx = solid[0];
-            var sy = solid[1];
-            var sw = solid[2];
-            var sh = solid[3];
-            if (x + w > sx  && x < sx + sw) {
-                if (y >= sy - h && y < sy + sh) {
-                    return false;
-                }
-            }
-        }
-        return true;
+    var moveRight = function(world) {
+        moveHorizontally(world, Math.max(-topSpeedX, speedX - 0.1));
     }
-    self.horizontalCollisionCorrection = function(world) {
-        if (!self.canMoveHorizontally(world)) {
-            self.speedX = 0.0;
-        }
+    var moveLeft = function(world) {
+        moveHorizontally(world, Math.min(topSpeedX, speedX + 0.1));
     }
-    self.moveRight = function(world) {
-        self.speedX = Math.max(-self.topSpeedX, self.speedX - 0.1);
-        self.horizontalCollisionCorrection(world);
+    var horizontalMomentum = function(world) {
+        var s = speedX;
+        if      (s < 0) { s = Math.min(0.0, s + 0.04); }
+        else if (s > 0) { s = Math.max(0.0, s - 0.04); }
+        moveHorizontally(world, s);
     }
-    self.moveLeft = function(world) {
-        self.speedX = Math.min(self.topSpeedX, self.speedX + 0.1);
-        self.horizontalCollisionCorrection(world);
-    }
-    self.horizontalMomentum = function(world) {
-        if (self.speedX < 0) {
-            self.speedX = Math.min(0.0, self.speedX + 0.04);
-        }
-        else if (self.speedX > 0) {
-            self.speedX = Math.max(0.0, self.speedX - 0.04);
-        }
-        self.horizontalCollisionCorrection(world);
-    }
-
-    self.gravity = function(world) {
-        if (self.isFalling(world)) {
-            self.jumptick = 0;
+    var gravity = function(world) {
+        if (!jumping && !isStanding(world)) {
+            jumptick = 0;
             self.movingY = 0.0;
-            self.speedY = Math.max(-1 * (self.topSpeedY * 2), self.speedY - 0.2);
-            self.willBeStanding(world);
+            speedY = Math.max(-1 * (topSpeedY * 2), speedY - 0.2);
+            isStanding(world, [speedX, speedY]);
         }
     }
-
     return self;
 }
