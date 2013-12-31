@@ -17,6 +17,7 @@ var Engine = function() {
     self.initGLOnCanvas = function(canvasId) {
         self.factory = GlFactory.initGLOnCanvas(canvasId);
     }
+    self.resetTimer = timer.reset
 
     self.loadScene = function(resource) {
         self.sceneLoader.setFactory(self.factory);

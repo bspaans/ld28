@@ -8,7 +8,9 @@ var World = function(world) {
         var w = 2, h = 2;
         for (var s in world) {
             var solid = world[s];
-            var sx = solid[0], sy = solid[1], sw = solid[2], sh = solid[3];
+            var sx = solid[0], sy = solid[1], sz = solid[2];
+            if (sz != -1) continue;
+            var sw = solid[3], sh = solid[4];
             if (x > sx - w && x < sx + sw && y >= sy + 0.01 
                     && y <= sy + sh + (1 / 8096)) {
                 if (correct) {

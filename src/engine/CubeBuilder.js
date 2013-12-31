@@ -57,7 +57,7 @@ var CubeBuilder = function() {
             result.textures.push(cube.t);
             result.positions = result.positions.concat(cube.v);
             result.normals = result.normals.concat(baseVertexNormals);
-			result.cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, 2, 2]);
+			result.cubePositions.push([cube.v[0] - 1, cube.v[1] - 1, cube.v[2] - 1, 2, 2]);
         }
 		return result;
 	}

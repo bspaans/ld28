@@ -19,6 +19,10 @@ var Timer = function() {
 	self.now = function() { return new Date().getTime(); }
 	self.isLaterThanNextTick = function(now) { return now > nextTick; }
 	self.calculateNextTick = function() { nextTick += FRAMES_MS }
+    self.reset = function() { 
+        lastTime = 0; 
+        nextTick = new Date().getTime() + FRAMES_MS;
+    }
 
 	return self;
 }

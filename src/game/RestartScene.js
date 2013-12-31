@@ -5,6 +5,8 @@ var RestartScene = function() {
 
     self.activate = function(data) {
 		data.model.resetScene(data.scene);
+        self.engine.resetTimer();
+        getUI().setStatus("RUN!");
 		self.stateMachine.changeToState("GAME", data.scene);
     }
 	return self;
