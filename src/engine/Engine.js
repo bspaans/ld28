@@ -15,7 +15,7 @@ var Engine = function() {
     }
 
     self.initGLOnCanvas = function(canvasId) {
-        self.factory = GlFactory.initGLOnCanvas(canvas);
+        self.factory = GlFactory.initGLOnCanvas(canvasId);
     }
 
     self.loadScene = function(resource) {
@@ -48,7 +48,7 @@ var Engine = function() {
     self.engineTick = function() {
         var scene = self.sceneLoader.getSceneIfReady();
         self.getCurrentState().tick(scene);
-        self.getCurrentState().inputTick(scene, elapsed);
+        self.inputLoop(scene);
         self.draw(scene);
     }
 
@@ -57,7 +57,8 @@ var Engine = function() {
         var now = timer.now();
         var loops = 0;
         while (timer.isLaterThanNextTick(now) && loops < MAX_FRAMESKIP) {
-            self.inputTick(scene, elapsed); // TODO what is elapsed doing?
+            // TODO what is elapsed doing?
+            self.getCurrentState().inputTick(scene, elapsed); 
 			timer.calculateNextTick();
 			loops++;
         }

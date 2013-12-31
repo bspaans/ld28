@@ -19,7 +19,7 @@ var GlFactory = function(gl) {
 
 GlFactory.initGLOnCanvas = function(canvasId) {
 	var canvas = document.getElementById(canvasId);
-	if (canvas == null) { throw "Can't find canvas with id " + canvasId; }
+	if (!canvas) { throw "Can't find canvas with id " + canvasId; }
 	return GlFactory.initGLOnCanvasElement(canvas);
 }
 GlFactory.initGLOnCanvasElement = function(canvasElement) {

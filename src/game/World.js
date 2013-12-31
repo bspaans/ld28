@@ -13,7 +13,6 @@ var World = function(world) {
                     && y <= sy + sh + (1 / 8096)) {
                 if (correct) {
                     entity.position.position[1] = sy + sh + 1;
-                    entity.speedY = 0.0;
                     entity.lastStandingPos = [sx + 1, sy + sh + 5, 0.0];
                 }
                 return true;

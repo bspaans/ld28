@@ -2,16 +2,15 @@ require(["engine.State"]);
 
 var GameOver = function() {
     var self = new State();
-    var ui = self.engine.ui;
     var gameModel = undefined;
 
     self.activate = function(data) { gameModel = data; }
 
     self.tick = function(scene) {
-        ui.setFPS("");
-        ui.setStatus("Press space to play again");
-        ui.setTimeLeft("GAME OVER");
-        ui.setScore(gameModel ? gameModel.formatScore() : 0);
+        self.engine.ui.setFPS("");
+        self.engine.ui.setStatus("Press space to play again");
+        self.engine.ui.setTimeLeft("GAME OVER");
+        self.engine.ui.setScore(gameModel ? gameModel.formatScore() : 0);
     }
 
     self.inputTick = function(scene, elapsed) {

@@ -1,16 +1,16 @@
 require(["engine.State", "game.Player", "game.GameModel"]);
-var Game = new function() {
+var Game = function() {
 	var self = new State();
     var gameModel = new GameModel();
-	var ui = self.engine.ui;
     var scene_initialized = false;
 
     var getPlayer = gameModel.getPlayer;
+    var getUI = function() { return self.engine.ui; }
 
     self.tick = function(scene) {
         if (!scene_initialized) {
-			ui.setStatus("RUN!");
-            scene.clearColor(1.0, 1.0, 1.0, 1.0);
+			getUI().setStatus("RUN!");
+            scene.setClearColor(1.0, 1.0, 1.0, 1.0);
             scene_initialized = true;
         }
     }
@@ -30,8 +30,8 @@ var Game = new function() {
         if (gameModel.secondsLeft <= 0) {
 			self.stateMachine.changeToState("GAME_OVER", gameModel);
         }
-        ui.setScore(gameModel.formatScore());
-        ui.setTimeLeft(gameModel.formatSecondsLeft());
+        getUI().setScore(gameModel.formatScore());
+        getUI().setTimeLeft(gameModel.formatSecondsLeft());
 	}
 
     self.handleInput = function(scene) {
@@ -51,7 +51,7 @@ var Game = new function() {
 
         if (p.position.position[1] < -50.0) {
             var resetPosition = p.lastStandingPos ? p.lastStandingPos : p.startPosition;
-            getPlayer(scene).resetPosition(playerPos);
+            getPlayer(scene).resetPosition(resetPosition);
         }
         self.cameraFollowsPlayer(scene, getPlayer(scene).position.position);
     }

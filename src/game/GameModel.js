@@ -32,6 +32,7 @@ var GameModel = function() {
     self.resetScene = function(scene) {
         var p = self.getPlayer(scene);
         p.resetPosition(p.startPosition);
-        gameModel.reset();
+        self.reset();
     }
+    return self;
 }

@@ -31,7 +31,7 @@ var GlScene = function(gl, shader) {
         self.mm.setMatrixUniforms(self.shader); 
         shape.draw(self.shader, self.lighting);
     }
-	self.doDrawShapeCallback = function(shabe, cb) {
+	self.doDrawShapeCallback = function(shape, cb) {
 		return cb(self, shape.name, shape, self.namedEntities[shape.name]);
 	}
     return self;

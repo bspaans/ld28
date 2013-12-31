@@ -16,7 +16,7 @@ var OneMinuteMan = function() {
             self.initGLOnCanvas("lesson01-canvas");
         } catch(e) {
             console.log(e);
-            ui.setStatus("Could not load OpenGL");
+            self.ui.setStatus("Could not load OpenGL<br/>" + e.toString());
             return;
         }
         self.addState("GAME"       , new Game());

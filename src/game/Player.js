@@ -85,7 +85,9 @@ var Player = function(player) {
             jumptick = 0;
             self.movingY = 0.0;
             speedY = Math.max(-1 * (topSpeedY * 2), speedY - 0.2);
-            isStanding(world, [speedX, speedY]);
+            if (isStanding(world, [speedX, speedY])) {
+                speedY = 0.0;
+            }
         }
     }
     return self;
